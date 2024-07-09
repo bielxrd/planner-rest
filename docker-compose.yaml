@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: planner_postgres
+    image: postgres:latest
+    ports:
+      - "5435:5432"
+
+    environment:
+      - POSTGRES_USER=planner_admin
+      - POSTGRES_PASSWORD=planner_admin
+      - POSTGRES_DB=planner_db
