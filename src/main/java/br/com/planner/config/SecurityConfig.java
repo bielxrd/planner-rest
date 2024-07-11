@@ -14,6 +14,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.authorizeHttpRequests(http -> {
             http.requestMatchers("/owners/create").permitAll();
+            http.requestMatchers("/owners/auth").permitAll();
             http.requestMatchers("/trips/**").permitAll();
         });
 
