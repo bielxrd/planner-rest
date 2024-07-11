@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Entity(name = "participans")
+@Entity(name = "participants")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,4 +32,7 @@ public class Participant {
 
     @Column(name = "trip_id")
     private UUID tripId;
+
+    @Column(name = "owner_id", nullable = true)
+    private UUID ownerId;
 }

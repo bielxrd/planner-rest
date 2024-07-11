@@ -35,4 +35,11 @@ public class Trip {
 
     @Column(name = "owner_email", nullable = false)
     private String ownerEmail;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id", insertable = false, updatable = false)
+    private Owner owner;
+
+    @Column(name = "owner_id", nullable = false)
+    private UUID ownerId;
 }
