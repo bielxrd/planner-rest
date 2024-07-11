@@ -1,6 +1,8 @@
 package br.com.planner.controllers;
 
 import br.com.planner.domain.Owner;
+import br.com.planner.dto.owner.AuthOwnerRequestDTO;
+import br.com.planner.dto.owner.AuthOwnerResponseDTO;
 import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.services.OwnerService;
@@ -24,4 +26,11 @@ public class OwnerController {
     public ResponseEntity<OwnerResponse> create(@RequestBody OwnerRequestDTO owner) {
         return ResponseEntity.ok().body(this.ownerService.create(owner));
     }
+
+    @PostMapping("/auth")
+    public ResponseEntity<AuthOwnerResponseDTO> auth(@RequestBody AuthOwnerRequestDTO authOwnerRequest) {
+        AuthOwnerResponseDTO owner = this.ownerService.auth(authOwnerRequest);
+        return ResponseEntity.ok().body(owner);
+    }
+
 }
