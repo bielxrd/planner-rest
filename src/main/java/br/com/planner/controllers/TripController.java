@@ -4,6 +4,7 @@ import br.com.planner.dto.trip.TripRequestDTO;
 import br.com.planner.dto.trip.TripCreateResponseDTO;
 import br.com.planner.dto.trip.TripResponseDTO;
 import br.com.planner.services.TripService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +21,15 @@ public class TripController {
     }
 
     @PostMapping
-    public ResponseEntity<TripCreateResponseDTO> create(@RequestBody TripRequestDTO requestDTO) {
-        TripCreateResponseDTO tripResponse = this.tripService.create(requestDTO);
+    public ResponseEntity<TripCreateResponseDTO> create(@RequestBody TripRequestDTO requestDTO, HttpServletRequest request) {
+
+        Object ownerId = request.getAttribute("owner_id");
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TripCreateResponseDTO tripResponse = this.tripService.create(requestDTO, UUID.fromString(ownerId.toString()));
         return ResponseEntity.ok(tripResponse);
     }
 

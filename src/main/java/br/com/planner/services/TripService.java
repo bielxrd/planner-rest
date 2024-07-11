@@ -1,11 +1,14 @@
 package br.com.planner.services;
 
+import br.com.planner.domain.Owner;
 import br.com.planner.domain.Participant;
 import br.com.planner.domain.Trip;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.dto.trip.TripRequestDTO;
 import br.com.planner.dto.trip.TripCreateResponseDTO;
 import br.com.planner.dto.trip.TripResponseDTO;
+import br.com.planner.exceptions.OwnerNotFoundException;
+import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.TripRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -20,20 +23,29 @@ public class TripService {
 
     private ParticipantService participantService;
 
+    private OwnerRepository ownerRepository;
+
     private ModelMapper modelMapper;
 
-    public TripService(TripRepository tripRepository, ParticipantService participantService, ModelMapper modelMapper) {
+    public TripService(TripRepository tripRepository, ParticipantService participantService, ModelMapper modelMapper, OwnerRepository ownerRepository) {
         this.tripRepository = tripRepository;
         this.participantService = participantService;
         this.modelMapper = modelMapper;
+        this.ownerRepository = ownerRepository;
     }
 
-    public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO) {
+    public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
         if (tripRequestDTO.getEndsAt().isBefore(tripRequestDTO.getStartsAt())) {
             throw new IllegalArgumentException("End date must be after start date");
         }
 
+        Owner owner = this.ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new OwnerNotFoundException("Owner not found"));
+
         Trip map = modelMapper.map(tripRequestDTO, Trip.class);
+        map.setOwnerName(owner.getName());
+        map.setOwnerEmail(owner.getEmail());
+        map.setOwnerId(ownerId);
 
         Trip save = this.tripRepository.save(map);
 
