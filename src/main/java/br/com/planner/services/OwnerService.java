@@ -69,7 +69,6 @@ public class OwnerService {
         Instant expiresIn = Instant.now().plus(Duration.ofHours(2));
         String token = JWT.create().withIssuer("OWNER")
                 .withExpiresAt(expiresIn)
-                .withClaim("roles", List.of("OWNER"))
                 .withSubject(owner.getId().toString())
                 .sign(algorithm);
 
