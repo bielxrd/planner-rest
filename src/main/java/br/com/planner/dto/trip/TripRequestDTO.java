@@ -26,9 +26,4 @@ public class TripRequestDTO {
     @JsonProperty("emails_to_invite")
     private List<String> emails_to_invite;
 
-    @JsonProperty("owner_name")
-    private String ownerName;
-
-    @JsonProperty("owner_email")
-    private String ownerEmail;
 }
