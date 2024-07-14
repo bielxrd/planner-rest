@@ -1,13 +1,23 @@
 version: '3.8'
 
 services:
-  postgres:
-    container_name: planner_postgres
+  postgres-db:
     image: postgres:latest
     ports:
-      - "5435:5432"
-
+      - "5432:5432"
     environment:
+      - POSTGRES_DB=planner_db
       - POSTGRES_USER=planner_admin
       - POSTGRES_PASSWORD=planner_admin
-      - POSTGRES_DB=planner_db
+
+  planner-api:
+    image: planner-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/planner_db
+      SPRING_DATASOURCE_USERNAME: planner_admin
+      SPRING_DATASOURCE_PASSWORD: planner_admin
+    depends_on:
+      - postgres-db
+
