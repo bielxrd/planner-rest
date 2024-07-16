@@ -1,6 +1,7 @@
 package br.com.planner.dto.owner;
 
 import br.com.planner.domain.Trip;
+import br.com.planner.dto.trip.AuthTripResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,6 @@ public class OwnerResponse {
 
     private String name;
     private String email;
-    private List<Trip> trips;
+    private List<AuthTripResponseDTO> trips;
 
 }
