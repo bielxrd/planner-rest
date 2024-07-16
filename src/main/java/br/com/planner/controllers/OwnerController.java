@@ -7,13 +7,11 @@ import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.services.OwnerService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/owners")
+@CrossOrigin(origins = "*")
 public class OwnerController {
 
     private OwnerService ownerService;
