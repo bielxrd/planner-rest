@@ -1,10 +1,13 @@
 package br.com.planner.services;
 
 import br.com.planner.domain.Owner;
+import br.com.planner.domain.Trip;
 import br.com.planner.dto.owner.AuthOwnerRequestDTO;
 import br.com.planner.dto.owner.AuthOwnerResponseDTO;
 import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
+import br.com.planner.dto.trip.AuthTripResponseDTO;
+import br.com.planner.dto.trip.TripResponseDTO;
 import br.com.planner.exceptions.EmailNotFoundException;
 import br.com.planner.exceptions.EmailOrPasswordWrongException;
 import br.com.planner.repositories.OwnerRepository;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -72,9 +76,26 @@ public class OwnerService {
                 .withSubject(owner.getId().toString())
                 .sign(algorithm);
 
+        List<AuthTripResponseDTO> trips = new ArrayList<>();
+        int contador = 0;
+        for (Trip trip : owner.getTrips()) {
+            if (contador >= 5) {
+                break;
+            }
+            trips.add(AuthTripResponseDTO.builder()
+                    .id(trip.getId())
+                    .destination(trip.getDestination())
+                    .startsAt(trip.getStartsAt())
+                    .endsAt(trip.getEndsAt())
+                    .confirmed(trip.isConfirmed())
+                    .ownerId(trip.getOwnerId())
+                    .build());
+            contador++;
+        }
+
         return AuthOwnerResponseDTO.builder()
                 .token(token)
-                .owner(new OwnerResponse(owner.getName(), owner.getEmail(), owner.getTrips()))
+                .owner(new OwnerResponse(owner.getName(), owner.getEmail(), trips))
                 .build();
 
     }
