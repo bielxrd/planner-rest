@@ -60,7 +60,7 @@ public class OwnerService {
 
     public AuthOwnerResponseDTO auth(AuthOwnerRequestDTO authOwnerRequestDTO) {
         Owner owner = this.ownerRepository.findByEmail(authOwnerRequestDTO.getEmail())
-                .orElseThrow(() -> new EmailNotFoundException("Email/Password incorrect."));
+                .orElseThrow(() -> new EmailOrPasswordWrongException("Email/Password incorrect."));
 
         boolean matches = passwordEncoder.matches(authOwnerRequestDTO.getPassword(), owner.getPassword());
 
