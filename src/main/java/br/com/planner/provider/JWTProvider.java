@@ -1,5 +1,6 @@
 package br.com.planner.provider;
 
+import br.com.planner.exceptions.TokenInvalidException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -18,10 +19,9 @@ public class JWTProvider {
 
         try {
             Algorithm algorithm = Algorithm.HMAC256(secretKey);
-            DecodedJWT tokenValidated = JWT.require(algorithm).build().verify(token);
-            return tokenValidated;
+            return JWT.require(algorithm).build().verify(token);
         } catch (JWTVerificationException e) {
-            return null;
+           return null;
         }
     }
 
