@@ -4,15 +4,18 @@ import br.com.planner.domain.Owner;
 import br.com.planner.domain.Participant;
 import br.com.planner.domain.Trip;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
-import br.com.planner.dto.trip.TripRequestDTO;
-import br.com.planner.dto.trip.TripCreateResponseDTO;
-import br.com.planner.dto.trip.TripResponseDTO;
+import br.com.planner.dto.trip.*;
 import br.com.planner.exceptions.OwnerNotFoundException;
+import br.com.planner.exceptions.TripAlreadyConfirmedException;
+import br.com.planner.exceptions.TripDateException;
+import br.com.planner.exceptions.TripNotFoundException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.TripRepository;
+import org.hibernate.sql.Update;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,9 +38,7 @@ public class TripService {
     }
 
     public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
-        if (tripRequestDTO.getEndsAt().isBefore(tripRequestDTO.getStartsAt())) {
-            throw new IllegalArgumentException("End date must be after start date");
-        }
+        tripDateValidation(tripRequestDTO.getStartsAt(), tripRequestDTO.getEndsAt());
 
         Owner owner = this.ownerRepository.findById(ownerId)
                 .orElseThrow(() -> new OwnerNotFoundException("Owner not found"));
@@ -61,19 +62,62 @@ public class TripService {
 
     public TripResponseDTO getTripById(UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("Trip not found"));
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
 
         List<Participant> participants = this.participantService.getParticipants(tripId);
 
-        TripResponseDTO map = modelMapper.map(trip, TripResponseDTO.class);
-        map.setParticipants(mapToParticipantResponse(participants));
 
-        return map;
+        return TripResponseDTO.builder()
+                .destination(trip.getDestination())
+                .startsAt(trip.getStartsAt())
+                .endsAt(trip.getEndsAt())
+                .ownerName(trip.getOwnerName())
+                .ownerEmail(trip.getOwnerEmail())
+                .confirmed(trip.isConfirmed())
+                .participants(mapToParticipantResponse(participants))
+                .build();
+    }
+
+    public UpdateTripDTO updateTrip(UUID tripId, UpdateTripDTO request) {
+
+        tripDateValidation(request.getStartsAt(), request.getEndsAt());
+
+        Trip tripRequest = this.tripRepository.findById(tripId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
+        tripRequest.setDestination(request.getDestination());
+        tripRequest.setStartsAt(request.getStartsAt());
+        tripRequest.setEndsAt(request.getEndsAt());
+
+        Trip trip = this.tripRepository.save(tripRequest);
+
+        return modelMapper.map(trip, UpdateTripDTO.class);
+    }
+
+    public TripIdDto confirmTrip(UUID tripid) {
+        Trip trip = this.tripRepository.findById(tripid)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
+        if (trip.isConfirmed()) {
+            throw new TripAlreadyConfirmedException("Trip has already been confirmed.");
+        }
+
+        trip.setConfirmed(true);
+        Trip updatedTrip = this.tripRepository.save(trip);
+
+        return new TripIdDto(updatedTrip.getId());
+
     }
 
     private List<ParticipantResponseDTO> mapToParticipantResponse(List<Participant> participants) {
         return participants.stream()
                 .map(participant -> modelMapper.map(participant, ParticipantResponseDTO.class))
                 .toList();
+    }
+
+    private void tripDateValidation(LocalDateTime startsAt, LocalDateTime endsAt) {
+        if (endsAt.isBefore(startsAt)) {
+            throw new TripDateException("End date must be after start date.");
+        }
     }
 }
