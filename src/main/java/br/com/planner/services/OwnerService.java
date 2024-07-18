@@ -7,7 +7,6 @@ import br.com.planner.dto.owner.AuthOwnerResponseDTO;
 import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.dto.trip.AuthTripResponseDTO;
-import br.com.planner.dto.trip.TripResponseDTO;
 import br.com.planner.exceptions.EmailNotFoundException;
 import br.com.planner.exceptions.EmailOrPasswordWrongException;
 import br.com.planner.repositories.OwnerRepository;
