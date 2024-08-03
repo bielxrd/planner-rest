@@ -94,8 +94,8 @@ public class TripService {
         return modelMapper.map(trip, UpdateTripDTO.class);
     }
 
-    public TripIdDto confirmTrip(UUID tripid) {
-        Trip trip = this.tripRepository.findById(tripid)
+    public TripIdDto confirmTrip(UUID tripId) {
+        Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));
 
         if (trip.isConfirmed()) {
@@ -107,6 +107,23 @@ public class TripService {
 
         return new TripIdDto(updatedTrip.getId());
 
+    }
+
+    public TripResponseDTO sendInvites(TripInviteDTO request, UUID tripId) {
+        Trip trip = this.tripRepository.findById(tripId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
+        List<Participant> participants = this.participantService.registerParticipansToTrip(tripId, request.getEmailsToInvite());
+
+        return TripResponseDTO.builder()
+                .destination(trip.getDestination())
+                .startsAt(trip.getStartsAt())
+                .endsAt(trip.getEndsAt())
+                .ownerName(trip.getOwnerName())
+                .ownerEmail(trip.getOwnerEmail())
+                .confirmed(trip.isConfirmed())
+                .participants(mapToParticipantResponse(participants))
+                .build();
     }
 
     private List<ParticipantResponseDTO> mapToParticipantResponse(List<Participant> participants) {

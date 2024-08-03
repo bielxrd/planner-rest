@@ -45,6 +45,12 @@ public class TripController {
         return ResponseEntity.ok(updatedTrip);
     }
 
+    @PostMapping("/invite/{tripId}")
+    public ResponseEntity<TripResponseDTO> invite(@PathVariable UUID tripId, @RequestBody TripInviteDTO request) {
+        TripResponseDTO tripResponseDTO = this.tripService.sendInvites(request, tripId);
+        return ResponseEntity.ok().body(tripResponseDTO);
+    }
+
     @PatchMapping("/{tripId}/confirm")
     public ResponseEntity<TripIdDto> confirm(@PathVariable UUID tripId, UriComponentsBuilder uriComponentsBuilder) {
         TripIdDto tripIdDto = this.tripService.confirmTrip(tripId);
