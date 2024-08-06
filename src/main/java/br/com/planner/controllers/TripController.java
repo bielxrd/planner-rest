@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,6 +32,18 @@ public class TripController {
 
         TripCreateResponseDTO tripResponse = this.tripService.create(requestDTO, UUID.fromString(ownerId.toString()));
         return ResponseEntity.ok(tripResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<TripListPageableResponseDTO> getTrips(@RequestParam(value = "page_number", required = false, defaultValue = "0") int pageNumber, @RequestParam(value = "page_size", required = false, defaultValue = "5") int pageSize, HttpServletRequest request) {
+        Object ownerId = request.getAttribute("owner_id");
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TripListPageableResponseDTO trips = this.tripService.getAllTrips(pageNumber, pageSize, UUID.fromString(ownerId.toString()));
+        return ResponseEntity.ok().body(trips);
     }
 
     @GetMapping("/{tripId}")
