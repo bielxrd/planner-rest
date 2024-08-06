@@ -33,10 +33,35 @@ public class TripController {
         return ResponseEntity.ok(tripResponse);
     }
 
+    @GetMapping
+    public ResponseEntity<TripListPageableResponseDTO> getTrips(@RequestParam(value = "page_number", required = false, defaultValue = "0") int pageNumber, @RequestParam(value = "page_size", required = false, defaultValue = "5") int pageSize, HttpServletRequest request) {
+        Object ownerId = request.getAttribute("owner_id");
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TripListPageableResponseDTO trips = this.tripService.getAllTrips(pageNumber, pageSize, UUID.fromString(ownerId.toString()));
+        return ResponseEntity.ok().body(trips);
+    }
+
     @GetMapping("/{tripId}")
     public ResponseEntity<TripResponseDTO> get(@PathVariable UUID tripId) {
         TripResponseDTO trip = this.tripService.getTripById(tripId);
         return ResponseEntity.ok(trip);
+    }
+
+    @GetMapping("/find/{destination}")
+    public ResponseEntity<TripResponseDTO> find(@PathVariable String destination, HttpServletRequest request) {
+
+        Object ownerId = request.getAttribute("owner_id");
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TripResponseDTO tripByDestination = this.tripService.findTripByDestinationFilter(destination, UUID.fromString(ownerId.toString()));
+        return ResponseEntity.ok().body(tripByDestination);
     }
 
     @PutMapping("/update/{tripId}")

@@ -11,11 +11,14 @@ import br.com.planner.exceptions.TripDateException;
 import br.com.planner.exceptions.TripNotFoundException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.TripRepository;
-import org.hibernate.sql.Update;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,12 +63,55 @@ public class TripService {
 
     }
 
+    public TripListPageableResponseDTO getAllTrips(int pageNumber, int pageSize, UUID ownerId) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Trip> tripsPageable = this.tripRepository.findAllByOwnerId(ownerId, pageable);
+        List<TripResponseDTO> tripIterator = new ArrayList<>();
+        tripsPageable.forEach((trip) -> {
+            TripResponseDTO tripRequest = TripResponseDTO.builder()
+                    .destination(trip.getDestination())
+                    .startsAt(trip.getStartsAt())
+                    .endsAt(trip.getEndsAt())
+                    .ownerName(trip.getOwnerName())
+                    .ownerEmail(trip.getOwnerEmail())
+                    .participants(mapToParticipantResponse(participantService.getParticipants(trip.getId())))
+                    .confirmed(trip.isConfirmed())
+                    .build();
+
+            tripIterator.add(tripRequest);
+        });
+        TripListPageableResponseDTO trips =  new TripListPageableResponseDTO();
+        trips.setTrips(tripIterator);
+        trips.setPageNumber(tripsPageable.getNumber());
+        trips.setPageSize(tripsPageable.getSize());
+        trips.setTotalPages(tripsPageable.getTotalPages());
+
+        return trips;
+    }
+
     public TripResponseDTO getTripById(UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));
 
         List<Participant> participants = this.participantService.getParticipants(tripId);
 
+
+        return TripResponseDTO.builder()
+                .destination(trip.getDestination())
+                .startsAt(trip.getStartsAt())
+                .endsAt(trip.getEndsAt())
+                .ownerName(trip.getOwnerName())
+                .ownerEmail(trip.getOwnerEmail())
+                .confirmed(trip.isConfirmed())
+                .participants(mapToParticipantResponse(participants))
+                .build();
+    }
+
+    public TripResponseDTO findTripByDestinationFilter(String destination, UUID ownerId) {
+        Trip trip = this.tripRepository.findByDestinationContainingIgnoreCaseAndOwnerId(destination, ownerId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
+        List<Participant> participants = this.participantService.getParticipants(trip.getId());
 
         return TripResponseDTO.builder()
                 .destination(trip.getDestination())
