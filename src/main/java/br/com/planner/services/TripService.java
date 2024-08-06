@@ -107,6 +107,23 @@ public class TripService {
                 .build();
     }
 
+    public TripResponseDTO findTripByDestinationFilter(String destination, UUID ownerId) {
+        Trip trip = this.tripRepository.findByDestinationContainingIgnoreCaseAndOwnerId(destination, ownerId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+
+        List<Participant> participants = this.participantService.getParticipants(trip.getId());
+
+        return TripResponseDTO.builder()
+                .destination(trip.getDestination())
+                .startsAt(trip.getStartsAt())
+                .endsAt(trip.getEndsAt())
+                .ownerName(trip.getOwnerName())
+                .ownerEmail(trip.getOwnerEmail())
+                .confirmed(trip.isConfirmed())
+                .participants(mapToParticipantResponse(participants))
+                .build();
+    }
+
     public UpdateTripDTO updateTrip(UUID tripId, UpdateTripDTO request) {
 
         tripDateValidation(request.getStartsAt(), request.getEndsAt());
