@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -50,6 +49,19 @@ public class TripController {
     public ResponseEntity<TripResponseDTO> get(@PathVariable UUID tripId) {
         TripResponseDTO trip = this.tripService.getTripById(tripId);
         return ResponseEntity.ok(trip);
+    }
+
+    @GetMapping("/find/{destination}")
+    public ResponseEntity<TripResponseDTO> find(@PathVariable String destination, HttpServletRequest request) {
+
+        Object ownerId = request.getAttribute("owner_id");
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TripResponseDTO tripByDestination = this.tripService.findTripByDestinationFilter(destination, UUID.fromString(ownerId.toString()));
+        return ResponseEntity.ok().body(tripByDestination);
     }
 
     @PutMapping("/update/{tripId}")
