@@ -96,10 +96,9 @@ public class TripController {
         return ResponseEntity.status(HttpStatus.CREATED);
     }
 
-
-
     @DeleteMapping("/{activityId}/delete")
-    public void delete(@PathVariable UUID activityId) {
-        this.tripService.deleteTripById(ac);
+    public ResponseEntity.BodyBuilder delete(@PathVariable UUID activityId) {
+        this.activityService.deleteActivityById(activityId);
+        return ResponseEntity.status(HttpStatus.OK);
     }
 }
