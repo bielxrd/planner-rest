@@ -155,6 +155,14 @@ public class TripService {
 
     }
 
+    public void deleteTripById(UUID tripId) {
+        if (!tripRepository.existsById(tripId)) {
+            throw new TripNotFoundException("Trip not found");
+        }
+
+        this.tripRepository.deleteById(tripId);
+    }
+
     public TripResponseDTO sendInvites(TripInviteDTO request, UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new TripNotFoundException("Trip not found"));

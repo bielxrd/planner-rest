@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity(name = "trips")
@@ -44,4 +46,7 @@ public class Trip {
 
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Activity> activities = new HashSet<>();
 }
