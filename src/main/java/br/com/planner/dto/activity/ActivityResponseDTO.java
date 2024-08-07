@@ -1,16 +1,15 @@
 package br.com.planner.dto.activity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
-public class ActivityRequestDTO {
+public class ActivityResponseDTO {
+    private UUID id;
     private String name;
-    @JsonProperty(namespace = "occurs_at")
     private LocalDateTime occursAt;
-
 }
