@@ -13,6 +13,6 @@ public interface ActivityRepository extends JpaRepository<Activity, UUID> {
     Optional<Activity> findByNameAndTripId(String name, UUID tripId);
     List<Activity> findAllByOccursAtAfterAndTripId(LocalDateTime occursAt, UUID tripId);
     List<Activity> findAllByOccursAtBeforeAndTripId(LocalDateTime occursAt, UUID tripId);
-
+    List<Activity> findAllByTripId(UUID tripId);
 
 }
