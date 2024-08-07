@@ -5,6 +5,7 @@ import br.com.planner.dto.activity.ActivityRequestDTO;
 import br.com.planner.dto.trip.TripResponseDTO;
 import br.com.planner.exceptions.ActivityFoundException;
 import br.com.planner.exceptions.ActivityNotFoundException;
+import br.com.planner.exceptions.TripDateException;
 import br.com.planner.repositories.ActivityRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,11 @@ public class ActivityService {
         this.activityRepository.findByNameAndTripId(requestDTO.getName(), tripId).ifPresentOrElse((activity) -> {
             throw new ActivityFoundException("Activity already registered.");
         }, () -> {
+
+            if (!tripFound.getStartsAt().isBefore(requestDTO.getOccursAt()) && tripFound.getEndsAt().isAfter(requestDTO.getOccursAt())) { // se a atividade n estiver entre a data de inicio da viagem e termino
+                throw new TripDateException("The activity must be registered between the start date and end date of the trip.");
+            }
+
             Activity activity = Activity.builder()
                     .name(requestDTO.getName())
                     .occursAt(requestDTO.getOccursAt())
