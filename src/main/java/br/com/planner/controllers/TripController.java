@@ -1,5 +1,6 @@
 package br.com.planner.controllers;
 
+import br.com.planner.domain.Activity;
 import br.com.planner.dto.activity.ActivityRequestDTO;
 import br.com.planner.dto.trip.*;
 import br.com.planner.services.ActivityService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -94,6 +96,13 @@ public class TripController {
     public ResponseEntity.BodyBuilder create(@PathVariable UUID tripId, @RequestBody ActivityRequestDTO requestDTO) {
         this.activityService.createActivityForTrip(tripId, requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{tripId}/activities")
+    public ResponseEntity<List<Activity>> get(@PathVariable UUID tripId, @RequestParam(name = "filter", defaultValue = "all") String filter) {
+        List<Activity> activities = this.activityService.getActivitiesByFilter(filter, tripId);
+        return ResponseEntity.status(HttpStatus.FOUND).body(activities);
+
     }
 
     @DeleteMapping("/{activityId}/delete")
