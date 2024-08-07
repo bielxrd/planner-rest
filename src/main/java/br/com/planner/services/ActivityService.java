@@ -38,5 +38,11 @@ public class ActivityService {
         });
     }
 
-    
+    public void deleteActivityById(UUID id) {
+        if (!this.activityRepository.existsById(id)) {
+            throw new ActivityNotFoundException("Activity not found.");
+        }
+
+        this.activityRepository.deleteById(id);
+    }
 }
