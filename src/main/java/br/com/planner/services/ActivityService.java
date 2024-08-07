@@ -9,6 +9,8 @@ import br.com.planner.exceptions.TripDateException;
 import br.com.planner.repositories.ActivityRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -42,6 +44,19 @@ public class ActivityService {
 
             this.activityRepository.save(activity);
         });
+    }
+
+    public List<Activity> getActivitiesByFilter(String filter, UUID tripId) {
+        switch (filter) {
+            case "future":
+                return this.activityRepository.findAllByOccursAtAfterAndTripId(LocalDateTime.now(), tripId);
+            case "past":
+                return this.activityRepository.findAllByOccursAtBeforeAndTripId(LocalDateTime.now(), tripId);
+            case "all":
+                return this.activityRepository.findAllByTripId(tripId);
+            default:
+                throw new IllegalArgumentException("Invalid filter type: " + filter);
+        }
     }
 
     public void deleteActivityById(UUID id) {
