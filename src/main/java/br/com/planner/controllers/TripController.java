@@ -1,7 +1,7 @@
 package br.com.planner.controllers;
 
-import br.com.planner.domain.Activity;
 import br.com.planner.dto.activity.ActivityRequestDTO;
+import br.com.planner.dto.activity.ActivityResponseDTO;
 import br.com.planner.dto.trip.*;
 import br.com.planner.services.ActivityService;
 import br.com.planner.services.TripService;
@@ -93,21 +93,21 @@ public class TripController {
     }
 
     @PostMapping("/{tripId}/activities")
-    public ResponseEntity.BodyBuilder create(@PathVariable UUID tripId, @RequestBody ActivityRequestDTO requestDTO) {
+    public ResponseEntity<Object> create(@PathVariable UUID tripId, @RequestBody ActivityRequestDTO requestDTO) {
         this.activityService.createActivityForTrip(tripId, requestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body("");
     }
 
     @GetMapping("/{tripId}/activities")
-    public ResponseEntity<List<Activity>> get(@PathVariable UUID tripId, @RequestParam(name = "filter", defaultValue = "all") String filter) {
-        List<Activity> activities = this.activityService.getActivitiesByFilter(filter, tripId);
+    public ResponseEntity<List<ActivityResponseDTO>> get(@PathVariable UUID tripId, @RequestParam(name = "filter", defaultValue = "all") String filter) {
+        List<ActivityResponseDTO> activities = this.activityService.getActivitiesByFilter(filter, tripId);
         return ResponseEntity.status(HttpStatus.FOUND).body(activities);
 
     }
 
-    @DeleteMapping("/{activityId}/delete")
-    public ResponseEntity.BodyBuilder delete(@PathVariable UUID activityId) {
+    @DeleteMapping("/{activityId}/activities")
+    public ResponseEntity<Object> delete(@PathVariable UUID activityId) {
         this.activityService.deleteActivityById(activityId);
-        return ResponseEntity.status(HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body("");
     }
 }
