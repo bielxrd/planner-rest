@@ -69,6 +69,7 @@ public class TripService {
         List<TripResponseDTO> tripIterator = new ArrayList<>();
         tripsPageable.forEach((trip) -> {
             TripResponseDTO tripRequest = TripResponseDTO.builder()
+                    .id(trip.getId())
                     .destination(trip.getDestination())
                     .startsAt(trip.getStartsAt())
                     .endsAt(trip.getEndsAt())
@@ -114,6 +115,7 @@ public class TripService {
         List<Participant> participants = this.participantService.getParticipants(trip.getId());
 
         return TripResponseDTO.builder()
+                .id(trip.getId())
                 .destination(trip.getDestination())
                 .startsAt(trip.getStartsAt())
                 .endsAt(trip.getEndsAt())
@@ -170,6 +172,7 @@ public class TripService {
         List<Participant> participants = this.participantService.registerParticipansToTrip(tripId, request.getEmailsToInvite());
 
         return TripResponseDTO.builder()
+                .id(trip.getId())
                 .destination(trip.getDestination())
                 .startsAt(trip.getStartsAt())
                 .endsAt(trip.getEndsAt())
