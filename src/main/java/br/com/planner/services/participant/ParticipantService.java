@@ -1,4 +1,4 @@
-package br.com.planner.services;
+package br.com.planner.services.participant;
 
 import br.com.planner.domain.Participant;
 import br.com.planner.dto.participant.ParticipantConfirmRequestDTO;
@@ -8,9 +8,11 @@ import br.com.planner.exceptions.ParticipantNotFoundException;
 import br.com.planner.repositories.ParticipantRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ParticipantService {
@@ -60,5 +62,25 @@ public class ParticipantService {
 
     public List<Participant> getParticipants(UUID tripId) {
         return participantRepository.findAllByTripId(tripId);
+    }
+
+    public List<Participant> getParticipantsWithOwnerId(UUID tripId) {
+        List<Participant> participants = getParticipants(tripId);
+
+        participants.removeIf(participant -> participant.getOwnerId() == null);
+
+        return participants;
+    }
+
+    public List<Participant> getParticipantsWithoutOwnerId(List<Participant> participantsInvited) {
+        List<UUID> uuids = participantsInvited.stream()
+                .map(Participant::getId)
+                .toList();
+
+        List<Participant> invitedParticipantsByUUID = this.participantRepository.findAllById(uuids);
+
+        invitedParticipantsByUUID.removeIf(participant -> participant.getOwnerId() != null);
+
+        return invitedParticipantsByUUID;
     }
 }

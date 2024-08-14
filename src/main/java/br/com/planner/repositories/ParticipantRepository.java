@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface ParticipantRepository extends JpaRepository<Participant, UUID> {
     public List<Participant> findAllByTripId(UUID tripId);
     public Optional<Participant> findByTripId(UUID tripId);
+
+
 }
