@@ -1,13 +1,12 @@
 package br.com.planner.controllers;
 
-import br.com.planner.domain.Link;
 import br.com.planner.dto.activity.ActivityRequestDTO;
 import br.com.planner.dto.activity.ActivityResponseDTO;
 import br.com.planner.dto.link.LinkDTO;
 import br.com.planner.dto.trip.*;
-import br.com.planner.services.ActivityService;
-import br.com.planner.services.LinkService;
-import br.com.planner.services.TripService;
+import br.com.planner.services.activity.ActivityService;
+import br.com.planner.services.link.LinkService;
+import br.com.planner.services.trip.TripService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
