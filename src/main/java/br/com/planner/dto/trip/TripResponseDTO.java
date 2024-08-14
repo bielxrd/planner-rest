@@ -7,10 +7,12 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 public class TripResponseDTO {
+    private UUID id;
     private String destination;
     private LocalDateTime startsAt;
     private LocalDateTime endsAt;
