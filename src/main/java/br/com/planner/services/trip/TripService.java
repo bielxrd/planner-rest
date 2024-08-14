@@ -1,8 +1,9 @@
-package br.com.planner.services;
+package br.com.planner.services.trip;
 
 import br.com.planner.domain.Owner;
 import br.com.planner.domain.Participant;
 import br.com.planner.domain.Trip;
+import br.com.planner.dto.email.Email;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.dto.trip.*;
 import br.com.planner.exceptions.OwnerNotFoundException;
@@ -11,6 +12,8 @@ import br.com.planner.exceptions.TripDateException;
 import br.com.planner.exceptions.TripNotFoundException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.TripRepository;
+import br.com.planner.services.email.EmailService;
+import br.com.planner.services.participant.ParticipantService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TripService {
@@ -33,11 +37,14 @@ public class TripService {
 
     private ModelMapper modelMapper;
 
-    public TripService(TripRepository tripRepository, ParticipantService participantService, ModelMapper modelMapper, OwnerRepository ownerRepository) {
+    private EmailService emailService;
+
+    public TripService(TripRepository tripRepository, ParticipantService participantService, ModelMapper modelMapper, OwnerRepository ownerRepository, EmailService emailService) {
         this.tripRepository = tripRepository;
         this.participantService = participantService;
         this.modelMapper = modelMapper;
         this.ownerRepository = ownerRepository;
+        this.emailService = emailService;
     }
 
     public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
@@ -54,6 +61,21 @@ public class TripService {
         Trip save = this.tripRepository.save(map);
 
         List<Participant> participants = this.participantService.registerParticipansToTrip(save.getId(), tripRequestDTO.getEmails_to_invite());
+
+        List<Participant> participantsWithoutOwnerId = this.participantService.getParticipantsWithoutOwnerId(participants);
+
+        List<String> emailsToSend = new ArrayList<>();
+
+        for (Participant item : participantsWithoutOwnerId) {
+            emailsToSend.add(item.getEmail());
+        }
+
+        Email email = new Email(owner.getEmail(),
+                emailsToSend,
+                "Viagem " + save.getDestination(),
+                String.format("http://localhost:5173/create?tripId=%s", save.getId()));
+
+        this.emailService.sendEmailToParticipant(email);
 
         return TripCreateResponseDTO.builder()
                 .tripId(save.getId())
