@@ -1,4 +1,4 @@
-package br.com.planner.services;
+package br.com.planner.services.owner;
 
 import br.com.planner.domain.Owner;
 import br.com.planner.domain.Trip;
@@ -7,7 +7,6 @@ import br.com.planner.dto.owner.AuthOwnerResponseDTO;
 import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.dto.trip.AuthTripResponseDTO;
-import br.com.planner.exceptions.EmailNotFoundException;
 import br.com.planner.exceptions.EmailOrPasswordWrongException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.strategy.OwnerValidationStrategy;
@@ -18,11 +17,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service

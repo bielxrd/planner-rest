@@ -1,4 +1,4 @@
-package br.com.planner.services;
+package br.com.planner.services.activity;
 
 import br.com.planner.domain.Activity;
 import br.com.planner.dto.activity.ActivityRequestDTO;
@@ -9,6 +9,7 @@ import br.com.planner.exceptions.ActivityNotFoundException;
 import br.com.planner.exceptions.TripDateException;
 import br.com.planner.mapper.ActivityMapper;
 import br.com.planner.repositories.ActivityRepository;
+import br.com.planner.services.trip.TripService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package br.com.planner.services;
+package br.com.planner.services.link;
 
 import br.com.planner.domain.Link;
 import br.com.planner.dto.link.LinkDTO;
