@@ -1,11 +1,10 @@
 package br.com.planner.controllers;
 
-import br.com.planner.domain.Owner;
 import br.com.planner.dto.owner.AuthOwnerRequestDTO;
 import br.com.planner.dto.owner.AuthOwnerResponseDTO;
 import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
-import br.com.planner.services.OwnerService;
+import br.com.planner.services.owner.OwnerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

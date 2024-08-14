@@ -2,8 +2,7 @@ package br.com.planner.controllers;
 
 import br.com.planner.dto.participant.ParticipantConfirmRequestDTO;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
-import br.com.planner.services.ParticipantService;
-import org.apache.coyote.Response;
+import br.com.planner.services.participant.ParticipantService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
