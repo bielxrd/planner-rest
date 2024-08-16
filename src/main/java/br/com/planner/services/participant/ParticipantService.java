@@ -95,14 +95,20 @@ public class ParticipantService {
         Participant participant = this.participantRepository.findByEmailAndTripId(requestDTO.getEmail(), tripId)
                 .orElseThrow(() -> new ParticipantNotFoundException("You must inform the same email that the owner of the trip informed."));
 
+        if (!participant.getEmail().equalsIgnoreCase(requestDTO.getEmail())) {
+            throw new RuntimeException("Email denied.");
+        }
+
         OwnerResponse ownerResponse = this.ownerService.create(requestDTO);
 
-        participant.setId(ownerResponse.getId());
+        participant.setName(ownerResponse.getName());
+        participant.setOwnerId(ownerResponse.getId());
 
         Participant created = this.participantRepository.save(participant);
 
         ownerResponse = OwnerResponse.builder()
                 .id(created.getOwnerId())
+                .name(created.getName())
                 .email(created.getEmail())
                 .build();
 
