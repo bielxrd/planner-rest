@@ -91,7 +91,7 @@ public class OwnerService {
 
         return AuthOwnerResponseDTO.builder()
                 .token(token)
-                .owner(new OwnerResponse(owner.getName(), owner.getEmail(), trips))
+                .owner(new OwnerResponse(owner.getId(), owner.getName(), owner.getEmail(), trips))
                 .build();
 
     }
