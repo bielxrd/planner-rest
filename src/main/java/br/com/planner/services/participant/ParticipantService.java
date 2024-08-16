@@ -1,11 +1,15 @@
 package br.com.planner.services.participant;
 
+import br.com.planner.domain.Owner;
 import br.com.planner.domain.Participant;
+import br.com.planner.dto.owner.OwnerRequestDTO;
+import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.dto.participant.ParticipantConfirmRequestDTO;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.exceptions.ParticipantAlreadyRegisteredException;
 import br.com.planner.exceptions.ParticipantNotFoundException;
 import br.com.planner.repositories.ParticipantRepository;
+import br.com.planner.services.owner.OwnerService;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
@@ -19,8 +23,11 @@ public class ParticipantService {
 
     private ParticipantRepository participantRepository;
 
-    public ParticipantService(ParticipantRepository participantRepository) {
+    private OwnerService ownerService;
+
+    public ParticipantService(ParticipantRepository participantRepository, OwnerService ownerService) {
         this.participantRepository = participantRepository;
+        this.ownerService = ownerService;
     }
 
     public List<Participant> registerParticipansToTrip(UUID tripId, List<String> participants) {
@@ -82,5 +89,23 @@ public class ParticipantService {
         invitedParticipantsByUUID.removeIf(participant -> participant.getOwnerId() != null);
 
         return invitedParticipantsByUUID;
+    }
+
+    public OwnerResponse assignParticipantToOwner(UUID tripId, OwnerRequestDTO requestDTO) {
+        Participant participant = this.participantRepository.findByEmailAndTripId(requestDTO.getEmail(), tripId)
+                .orElseThrow(() -> new ParticipantNotFoundException("You must inform the same email that the owner of the trip informed."));
+
+        OwnerResponse ownerResponse = this.ownerService.create(requestDTO);
+
+        participant.setId(ownerResponse.getId());
+
+        Participant created = this.participantRepository.save(participant);
+
+        ownerResponse = OwnerResponse.builder()
+                .id(created.getOwnerId())
+                .email(created.getEmail())
+                .build();
+
+        return ownerResponse;
     }
 }
