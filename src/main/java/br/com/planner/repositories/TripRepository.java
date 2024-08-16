@@ -15,9 +15,6 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
     Page<Trip> findAllByOwnerId(UUID ownerId, Pageable pageable);
     Optional<Trip> findByDestinationContainingIgnoreCaseAndOwnerId(String filter, UUID ownerId);
 
-    @Query(value = "SELECT * FROM trips "+
-            "JOIN participants ON trips.id = participants.trip_id "+
-            "WHERE participants.owner_id = :ownerId",
-            nativeQuery = true)
+    @Query(value = "SELECT t.* FROM trips t JOIN participants p ON t.id = p.trip_id WHERE p.owner_id = :ownerId", nativeQuery = true)
     Page<Trip> findTripsByParticipantOwnerId(@Param("ownerId") UUID ownerId, Pageable pageable);
 }
