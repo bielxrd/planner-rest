@@ -1,5 +1,7 @@
 package br.com.planner.controllers;
 
+import br.com.planner.dto.owner.OwnerRequestDTO;
+import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.dto.participant.ParticipantConfirmRequestDTO;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.services.participant.ParticipantService;
@@ -22,6 +24,12 @@ public class ParticipantController {
     public ResponseEntity<ParticipantResponseDTO> confirm(@PathVariable UUID tripId, @RequestBody ParticipantConfirmRequestDTO request) {
         ParticipantResponseDTO participantResponseDTO = this.participantService.confirmTrip(request, tripId);
         return ResponseEntity.ok().body(participantResponseDTO);
+    }
+
+    @PostMapping("/create/{tripId}")
+    public ResponseEntity<OwnerResponse> create(@PathVariable UUID tripId, @RequestBody OwnerRequestDTO requestDTO) {
+        OwnerResponse response = this.participantService.assignParticipantToOwner(tripId, requestDTO);
+        return ResponseEntity.ok().body(response);
     }
 
 

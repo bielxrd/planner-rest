@@ -134,4 +134,19 @@ public class TripController {
         return ResponseEntity.status(HttpStatus.OK).body("");
     }
 
+    @GetMapping("/participations")
+    public ResponseEntity<TripListPageableResponseDTO> getParticipations(@RequestParam(value = "page_number", required = false, defaultValue = "0") int pageNumber,
+                                                                         @RequestParam(value = "page_size", required = false, defaultValue = "5") int pageSize,
+                                                                         HttpServletRequest request) {
+        Object ownerId = request.getAttribute("owner_id");
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        TripListPageableResponseDTO tripsForParticipants = this.tripService.getTripsForParticipants(pageNumber, pageSize, UUID.fromString(ownerId.toString()));
+        return ResponseEntity.status(HttpStatus.FOUND).body(tripsForParticipants);
+    }
+
+
 }
