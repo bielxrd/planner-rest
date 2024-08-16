@@ -1,6 +1,6 @@
 package br.com.planner.config;
 
-import br.com.planner.security.SecurityOwnerFilter;
+import br.com.planner.filter.SecurityOwnerFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +23,7 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(http -> {
                     http.requestMatchers("/owners/create").permitAll();
                     http.requestMatchers("/owners/auth").permitAll();
+                    http.requestMatchers("/participants/create/{tripId}").permitAll();
                     http.anyRequest().authenticated();
                 })
                 .addFilterBefore(securityOwnerFilter, BasicAuthenticationFilter.class);
