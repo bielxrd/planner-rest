@@ -10,6 +10,8 @@ import br.com.planner.exceptions.OwnerNotFoundException;
 import br.com.planner.exceptions.TripAlreadyConfirmedException;
 import br.com.planner.exceptions.TripDateException;
 import br.com.planner.exceptions.TripNotFoundException;
+import br.com.planner.mapper.ParticipantMapper;
+import br.com.planner.mapper.TripMapper;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.TripRepository;
 import br.com.planner.services.email.EmailService;
@@ -39,12 +41,18 @@ public class TripService {
 
     private EmailService emailService;
 
-    public TripService(TripRepository tripRepository, ParticipantService participantService, ModelMapper modelMapper, OwnerRepository ownerRepository, EmailService emailService) {
+    private ParticipantMapper participantMapper;
+
+    private TripMapper tripMapper;
+
+    public TripService(TripRepository tripRepository, ParticipantService participantService, OwnerRepository ownerRepository, ModelMapper modelMapper, EmailService emailService, ParticipantMapper participantMapper, TripMapper tripMapper) {
         this.tripRepository = tripRepository;
         this.participantService = participantService;
-        this.modelMapper = modelMapper;
         this.ownerRepository = ownerRepository;
+        this.modelMapper = modelMapper;
         this.emailService = emailService;
+        this.participantMapper = participantMapper;
+        this.tripMapper = tripMapper;
     }
 
     public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
@@ -77,39 +85,15 @@ public class TripService {
 
         this.emailService.sendEmailToParticipant(email);
 
-        return TripCreateResponseDTO.builder()
-                .tripId(save.getId())
-                .destination(save.getDestination())
-                .participants(mapToParticipantResponse(participants))
-                .build();
+        return this.tripMapper.toTripCreateResponseDTO(save, participants);
 
     }
 
     public TripListPageableResponseDTO getAllTrips(int pageNumber, int pageSize, UUID ownerId) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Trip> tripsPageable = this.tripRepository.findAllByOwnerId(ownerId, pageable);
-        List<TripResponseDTO> tripIterator = new ArrayList<>();
-        tripsPageable.forEach((trip) -> {
-            TripResponseDTO tripRequest = TripResponseDTO.builder()
-                    .id(trip.getId())
-                    .destination(trip.getDestination())
-                    .startsAt(trip.getStartsAt())
-                    .endsAt(trip.getEndsAt())
-                    .ownerName(trip.getOwnerName())
-                    .ownerEmail(trip.getOwnerEmail())
-                    .participants(mapToParticipantResponse(participantService.getParticipants(trip.getId())))
-                    .confirmed(trip.isConfirmed())
-                    .build();
 
-            tripIterator.add(tripRequest);
-        });
-        TripListPageableResponseDTO trips =  new TripListPageableResponseDTO();
-        trips.setTrips(tripIterator);
-        trips.setPageNumber(tripsPageable.getNumber());
-        trips.setPageSize(tripsPageable.getSize());
-        trips.setTotalPages(tripsPageable.getTotalPages());
-
-        return trips;
+        return tripMapper.toTripListPageableResponseDTO(tripsPageable);
     }
 
     public TripResponseDTO getTripById(UUID tripId) {
@@ -118,16 +102,7 @@ public class TripService {
 
         List<Participant> participants = this.participantService.getParticipants(tripId);
 
-
-        return TripResponseDTO.builder()
-                .destination(trip.getDestination())
-                .startsAt(trip.getStartsAt())
-                .endsAt(trip.getEndsAt())
-                .ownerName(trip.getOwnerName())
-                .ownerEmail(trip.getOwnerEmail())
-                .confirmed(trip.isConfirmed())
-                .participants(mapToParticipantResponse(participants))
-                .build();
+        return tripMapper.toTripResponseDTO(trip, participants);
     }
 
     public TripResponseDTO findTripByDestinationFilter(String destination, UUID ownerId) {
@@ -136,16 +111,7 @@ public class TripService {
 
         List<Participant> participants = this.participantService.getParticipants(trip.getId());
 
-        return TripResponseDTO.builder()
-                .id(trip.getId())
-                .destination(trip.getDestination())
-                .startsAt(trip.getStartsAt())
-                .endsAt(trip.getEndsAt())
-                .ownerName(trip.getOwnerName())
-                .ownerEmail(trip.getOwnerEmail())
-                .confirmed(trip.isConfirmed())
-                .participants(mapToParticipantResponse(participants))
-                .build();
+        return tripMapper.toTripResponseDTO(trip, participants);
     }
 
     public UpdateTripDTO updateTrip(UUID tripId, UpdateTripDTO request) {
@@ -193,22 +159,17 @@ public class TripService {
 
         List<Participant> participants = this.participantService.registerParticipansToTrip(tripId, request.getEmailsToInvite());
 
-        return TripResponseDTO.builder()
-                .id(trip.getId())
-                .destination(trip.getDestination())
-                .startsAt(trip.getStartsAt())
-                .endsAt(trip.getEndsAt())
-                .ownerName(trip.getOwnerName())
-                .ownerEmail(trip.getOwnerEmail())
-                .confirmed(trip.isConfirmed())
-                .participants(mapToParticipantResponse(participants))
-                .build();
+        return tripMapper.toTripResponseDTO(trip, participants);
     }
 
-    private List<ParticipantResponseDTO> mapToParticipantResponse(List<Participant> participants) {
-        return participants.stream()
-                .map(participant -> modelMapper.map(participant, ParticipantResponseDTO.class))
-                .toList();
+    public TripListPageableResponseDTO getTripsForParticipants(int pageNumber, int pageSize, UUID ownerId) {
+        this.ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new OwnerNotFoundException("Not found."));
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Trip> tripsPageable = this.tripRepository.findTripsByParticipantOwnerId(ownerId, pageable);
+
+        return this.tripMapper.toTripListPageableResponseDTO(tripsPageable);
     }
 
     private void tripDateValidation(LocalDateTime startsAt, LocalDateTime endsAt) {
