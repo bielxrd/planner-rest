@@ -1,4 +1,4 @@
-package br.com.planner.security;
+package br.com.planner.filter;
 
 import br.com.planner.exceptions.TokenInvalidException;
 import br.com.planner.provider.JWTProvider;
