@@ -2,6 +2,7 @@ package br.com.planner.repositories;
 
 import br.com.planner.domain.Participant;
 import br.com.planner.domain.Trip;
+import br.com.planner.services.participant.ParticipantService;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.swing.text.html.Option;
