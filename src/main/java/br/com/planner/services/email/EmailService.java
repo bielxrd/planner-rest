@@ -2,18 +2,34 @@ package br.com.planner.services.email;
 
 import br.com.planner.domain.Owner;
 import br.com.planner.dto.email.Email;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.encrypt.BouncyCastleAesCbcBytesEncryptor;
 import org.springframework.stereotype.Service;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 
 @Service
 public class EmailService {
 
     private final JavaMailSender mailSender;
+
+    @Value("${email.encrypt.secretKey}")
+    private String password;
 
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -26,15 +42,95 @@ public class EmailService {
     public void sendEmailToParticipant(Email email) {
         try {
             SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-            simpleMailMessage.setFrom(email.getFrom());
-            String[] recipients = email.getTo().toArray(new String[0]);
-            simpleMailMessage.setTo(recipients);
-            simpleMailMessage.setSubject(email.getSubject());
-            simpleMailMessage.setText(email.getBody());
-            mailSender.send(simpleMailMessage);
-            System.out.println("Emails enviados");
+            for (int i = 0; i < email.getTo().size(); i++) {
+                simpleMailMessage.setFrom(email.getFrom());
+                simpleMailMessage.setTo(email.getTo().get(i));
+                simpleMailMessage.setSubject(email.getSubject());
+                simpleMailMessage.setText(email.getBody() + "&data=" + encryptEmail(email.getTo().get(i)));
+                mailSender.send(simpleMailMessage);
+            }
         } catch (MailException e) {
             System.out.println(e.getMessage());
         }
     }
+
+    private String[] mapToArrayString(List<String> invites) {
+        String [] recipients = new String[invites.size()];
+        for (int i = 0; i < invites.size(); i++) {
+            recipients[i] = invites.get(i);
+        }
+
+        return recipients;
+    }
+
+    private String encryptEmail(String email) {
+        try {
+            Security.addProvider(new BouncyCastleProvider());
+            SecureRandom sr = new SecureRandom();
+            byte[] salt = new byte[8];
+            sr.nextBytes(salt);
+            final byte[][] keyAndIV = generateKeyAndIV(32, 16, 1, salt, password.getBytes(StandardCharsets.UTF_8), MessageDigest.getInstance("MD5"));
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding", BouncyCastleProvider.PROVIDER_NAME);
+            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(keyAndIV[0], "AES"), new IvParameterSpec(keyAndIV[1]));
+            byte[] encryptedData = cipher.doFinal(email.getBytes(StandardCharsets.UTF_8));
+            byte[] prefixAndSaltAndEncryptedData = new byte[16 + encryptedData.length];
+
+            System.arraycopy("Salted__".getBytes(StandardCharsets.UTF_8), 0, prefixAndSaltAndEncryptedData, 0, 8);
+            System.arraycopy(salt, 0, prefixAndSaltAndEncryptedData, 8, 8);
+            System.arraycopy(encryptedData, 0, prefixAndSaltAndEncryptedData, 16, encryptedData.length);
+            return Base64.getEncoder().encodeToString(prefixAndSaltAndEncryptedData);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private static byte[][] generateKeyAndIV(int keyLength, int ivLength, int iterations, byte[] salt, byte[] password, MessageDigest md) {
+
+        int digestLength = md.getDigestLength();
+        int requiredLength = (keyLength + ivLength + digestLength - 1) / digestLength * digestLength;
+        byte[] generatedData = new byte[requiredLength];
+        int generatedLength = 0;
+
+        try {
+            md.reset();
+
+            // Repeat process until sufficient data has been generated
+            while (generatedLength < keyLength + ivLength) {
+
+                // Digest data (last digest if available, password data, salt if available)
+                if (generatedLength > 0)
+                    md.update(generatedData, generatedLength - digestLength, digestLength);
+                md.update(password);
+                if (salt != null)
+                    md.update(salt, 0, 8);
+                md.digest(generatedData, generatedLength, digestLength);
+
+                // additional rounds
+                for (int i = 1; i < iterations; i++) {
+                    md.update(generatedData, generatedLength, digestLength);
+                    md.digest(generatedData, generatedLength, digestLength);
+                }
+
+                generatedLength += digestLength;
+            }
+
+            // Copy key and IV into separate byte arrays
+            byte[][] result = new byte[2][];
+            result[0] = Arrays.copyOfRange(generatedData, 0, keyLength);
+            if (ivLength > 0)
+                result[1] = Arrays.copyOfRange(generatedData, keyLength, keyLength + ivLength);
+
+            return result;
+
+        } catch (DigestException e) {
+            throw new RuntimeException(e);
+
+        } finally {
+            // Clean out temporary data
+            Arrays.fill(generatedData, (byte)0);
+        }
+    }
+
 }
