@@ -2,14 +2,18 @@ package br.com.planner.services.email;
 
 import br.com.planner.domain.Owner;
 import br.com.planner.dto.email.Email;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.encrypt.BouncyCastleAesCbcBytesEncryptor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,7 @@ import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Arrays;
@@ -41,26 +46,29 @@ public class EmailService {
 
     public void sendEmailToParticipant(Email email) {
         try {
-            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+            MimeMessage simpleMailMessage = mailSender.createMimeMessage();
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(simpleMailMessage);
+            String template = loadTemplate();
+            template = template.replace("#{destination}", email.getSubject());
+            template = template.replace("#{date}", email.getStartsAt().toString());
             for (int i = 0; i < email.getTo().size(); i++) {
-                simpleMailMessage.setFrom(email.getFrom());
-                simpleMailMessage.setTo(email.getTo().get(i));
-                simpleMailMessage.setSubject(email.getSubject());
-                simpleMailMessage.setText(email.getBody() + "&data=" + encryptEmail(email.getTo().get(i)));
+                mimeMessageHelper.setFrom(email.getFrom());
+                mimeMessageHelper.setTo(email.getTo().get(i));
+                mimeMessageHelper.setSubject(email.getSubject());
+
+                String personalizedTemplate = template.replace("#{link}", email.getBody() + "&data=" + encryptEmail(email.getTo().get(i)));
+
+                mimeMessageHelper.setText(personalizedTemplate, true);
                 mailSender.send(simpleMailMessage);
             }
-        } catch (MailException e) {
+        } catch (MailException | IOException | MessagingException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private String[] mapToArrayString(List<String> invites) {
-        String [] recipients = new String[invites.size()];
-        for (int i = 0; i < invites.size(); i++) {
-            recipients[i] = invites.get(i);
-        }
-
-        return recipients;
+    private String loadTemplate() throws IOException {
+        ClassPathResource resource = new ClassPathResource("/templates/email-template.html");
+        return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
     }
 
     private String encryptEmail(String email) {
