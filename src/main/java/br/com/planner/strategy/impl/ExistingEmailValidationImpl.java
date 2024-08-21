@@ -1,7 +1,7 @@
 package br.com.planner.strategy.impl;
 
 import br.com.planner.dto.owner.OwnerRequestDTO;
-import br.com.planner.exceptions.EmailAlreadyExistsException;
+import br.com.planner.exceptions.AlreadyExistsException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.strategy.OwnerValidationStrategy;
 import org.springframework.core.annotation.Order;
@@ -20,7 +20,7 @@ public class ExistingEmailValidationImpl implements OwnerValidationStrategy {
     @Override
     public void execute(OwnerRequestDTO request) {
         if (isValidEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already exists");
+            throw new AlreadyExistsException("Email already exists");
         }
     }
 
