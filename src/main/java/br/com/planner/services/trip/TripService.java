@@ -161,7 +161,7 @@ public class TripService {
 
     private void tripDateValidation(LocalDateTime startsAt, LocalDateTime endsAt) {
         if (endsAt.isBefore(startsAt)) {
-            throw new TripDateException("End date must be after start date.");
+            throw new InvalidInputException("End date must be after start date.");
         }
     }
 }

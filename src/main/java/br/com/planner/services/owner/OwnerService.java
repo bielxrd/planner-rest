@@ -7,7 +7,7 @@ import br.com.planner.dto.owner.AuthOwnerResponseDTO;
 import br.com.planner.dto.owner.OwnerRequestDTO;
 import br.com.planner.dto.owner.OwnerResponse;
 import br.com.planner.dto.trip.AuthTripResponseDTO;
-import br.com.planner.exceptions.EmailOrPasswordWrongException;
+import br.com.planner.exceptions.InvalidInputException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.strategy.OwnerValidationStrategy;
 import com.auth0.jwt.JWT;
@@ -57,12 +57,12 @@ public class OwnerService {
 
     public AuthOwnerResponseDTO auth(AuthOwnerRequestDTO authOwnerRequestDTO) {
         Owner owner = this.ownerRepository.findByEmail(authOwnerRequestDTO.getEmail())
-                .orElseThrow(() -> new EmailOrPasswordWrongException("Email/Password incorrect."));
+                .orElseThrow(() -> new InvalidInputException("Email/Password incorrect."));
 
         boolean matches = passwordEncoder.matches(authOwnerRequestDTO.getPassword(), owner.getPassword());
 
         if (!matches) {
-            throw new EmailOrPasswordWrongException("Email/password incorrect.");
+            throw new InvalidInputException("Email/password incorrect.");
         }
 
         Algorithm algorithm = Algorithm.HMAC256(secretKey);

@@ -27,14 +27,9 @@ public class ExceptionHandlerRest extends ResponseEntityExceptionHandler {
                 .body(new ErrorMessageDTO(HttpStatus.INTERNAL_SERVER_ERROR, alreadyExistsException.getMessage()));
     }
 
-    @ExceptionHandler(PasswordLengthException.class)
-    private ResponseEntity<Object> handlePasswordLengthException(PasswordLengthException passwordLengthException) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessageDTO(HttpStatus.BAD_REQUEST, passwordLengthException.getMessage()));
-    }
-
-    @ExceptionHandler(PasswordRegexException.class)
-    private ResponseEntity<Object> handlePasswordRegexException(PasswordRegexException passwordRegexException) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessageDTO(HttpStatus.BAD_REQUEST, passwordRegexException.getMessage()));
+    @ExceptionHandler(InvalidInputException.class)
+    private ResponseEntity<Object> handlePasswordLengthException(InvalidInputException invalidInputException) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessageDTO(HttpStatus.BAD_REQUEST, invalidInputException.getMessage()));
     }
 
     @ExceptionHandler(TripAlreadyConfirmedException.class)
@@ -42,9 +37,5 @@ public class ExceptionHandlerRest extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorMessageDTO(HttpStatus.CONFLICT, tripAlreadyConfirmedException.getMessage()));
     }
 
-    @ExceptionHandler(TripDateException.class)
-    private ResponseEntity<Object> handleTripDateException(TripDateException tripDateException) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessageDTO(HttpStatus.BAD_REQUEST, tripDateException.getMessage()));
-    }
 
 }

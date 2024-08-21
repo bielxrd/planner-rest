@@ -5,8 +5,8 @@ import br.com.planner.dto.activity.ActivityRequestDTO;
 import br.com.planner.dto.activity.ActivityResponseDTO;
 import br.com.planner.dto.trip.TripResponseDTO;
 import br.com.planner.exceptions.AlreadyExistsException;
+import br.com.planner.exceptions.InvalidInputException;
 import br.com.planner.exceptions.NotFoundException;
-import br.com.planner.exceptions.TripDateException;
 import br.com.planner.mapper.ActivityMapper;
 import br.com.planner.repositories.ActivityRepository;
 import br.com.planner.services.trip.TripService;
@@ -36,7 +36,7 @@ public class ActivityService {
         }, () -> {
 
             if (!(tripFound.getStartsAt().isBefore(requestDTO.getOccursAt()) && tripFound.getEndsAt().isAfter(requestDTO.getOccursAt()))) { // se a atividade n estiver entre a data de inicio da viagem e termino
-                throw new TripDateException("The activity must be registered between the start date and end date of the trip.");
+                throw new InvalidInputException("The activity must be registered between the start date and end date of the trip.");
             }
 
             Activity activity = Activity.builder()

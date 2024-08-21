@@ -47,7 +47,7 @@ public class EmailService {
     public void sendEmailToParticipant(Email email) {
         try {
             MimeMessage simpleMailMessage = mailSender.createMimeMessage();
-            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(simpleMailMessage);
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(simpleMailMessage, true);
             String template = loadTemplate();
             template = template.replace("#{destination}", email.getSubject());
             template = template.replace("#{date}", email.getStartsAt().toString());
@@ -55,6 +55,9 @@ public class EmailService {
                 mimeMessageHelper.setFrom(email.getFrom());
                 mimeMessageHelper.setTo(email.getTo().get(i));
                 mimeMessageHelper.setSubject(email.getSubject());
+
+                ClassPathResource resource = new ClassPathResource("/static/img/Logo-black.svg");
+                mimeMessageHelper.addInline("logo", resource);
 
                 String personalizedTemplate = template.replace("#{link}", email.getBody() + "&data=" + encryptEmail(email.getTo().get(i)));
 
