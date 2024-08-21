@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -17,6 +18,7 @@ public class Email {
     private List<String> to;
     private String subject;
     private String body;
+    private LocalDateTime startsAt;
 
     // CONFIRMAR PARTICIPACAO NA VIAGEM
     // localhost:5173/tripId=849387547890358974&token=ejjbb8jkdsfjkesruieyh7i -> para pagina da trip -> modal para confirmar trip ->, informar o email,

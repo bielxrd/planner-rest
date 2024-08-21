@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ActivityService {
 
-    private ActivityRepository activityRepository;
+    private final ActivityRepository activityRepository;
 
-    private TripService tripService;
+    private final TripService tripService;
 
-    private ActivityMapper activityMapper;
+    private final ActivityMapper activityMapper;
 
     public void createActivityForTrip(UUID tripId, ActivityRequestDTO requestDTO) {
         TripResponseDTO tripFound = this.tripService.getTripById(tripId);

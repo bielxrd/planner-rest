@@ -27,19 +27,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TripService {
 
-    private TripRepository tripRepository;
+    private final TripRepository tripRepository;
 
-    private ParticipantService participantService;
+    private final ParticipantService participantService;
 
-    private OwnerRepository ownerRepository;
+    private final OwnerRepository ownerRepository;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    private EmailService emailService;
+    private final EmailService emailService;
 
-    private ParticipantMapper participantMapper;
+    private final ParticipantMapper participantMapper;
 
-    private TripMapper tripMapper;
+    private final TripMapper tripMapper;
 
     public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
         tripDateValidation(tripRequestDTO.getStartsAt(), tripRequestDTO.getEndsAt());
@@ -67,7 +67,8 @@ public class TripService {
         Email email = new Email(owner.getEmail(),
                 emailsToSend,
                 "Viagem " + save.getDestination(),
-                String.format("http://localhost:5173/create?tripId=%s", save.getId()));
+                String.format("http://localhost:5173/create?tripId=%s", save.getId()),
+                save.getStartsAt());
 
         this.emailService.sendEmailToParticipant(email);
 
