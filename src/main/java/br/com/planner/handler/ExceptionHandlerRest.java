@@ -16,20 +16,15 @@ public class ExceptionHandlerRest extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(threatResponse.getStatus()).body(threatResponse);
     }
 
-    @ExceptionHandler(EmailOrPasswordWrongException.class)
-    private ResponseEntity<Object> handleEmailNotFoundException(EmailOrPasswordWrongException emailNotFoundException) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessageDTO(HttpStatus.NOT_FOUND, emailNotFoundException.getMessage()));
+    @ExceptionHandler(NotFoundException.class)
+    private ResponseEntity<Object> handleNotFoundException(NotFoundException notFoundException) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessageDTO(HttpStatus.NOT_FOUND, notFoundException.getMessage()));
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    private ResponseEntity<Object> handleEmailAlreadyExistsException(EmailAlreadyExistsException emailAlreadyExistsException) {
+    @ExceptionHandler(AlreadyExistsException.class)
+    private ResponseEntity<Object> handleAlreadyExistsException(AlreadyExistsException alreadyExistsException) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorMessageDTO(HttpStatus.INTERNAL_SERVER_ERROR, emailAlreadyExistsException.getMessage()));
-    }
-
-    @ExceptionHandler(OwnerNotFoundException.class)
-    private ResponseEntity<Object> handleOwnerNotFoundException(OwnerNotFoundException ownerNotFoundException) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessageDTO(HttpStatus.NOT_FOUND, ownerNotFoundException.getMessage()));
+                .body(new ErrorMessageDTO(HttpStatus.INTERNAL_SERVER_ERROR, alreadyExistsException.getMessage()));
     }
 
     @ExceptionHandler(PasswordLengthException.class)
@@ -51,11 +46,5 @@ public class ExceptionHandlerRest extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> handleTripDateException(TripDateException tripDateException) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessageDTO(HttpStatus.BAD_REQUEST, tripDateException.getMessage()));
     }
-
-    @ExceptionHandler(TripNotFoundException.class)
-    private ResponseEntity<Object> handleTripNotFoundException(TripNotFoundException tripNotFoundException) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessageDTO(HttpStatus.NOT_FOUND, tripNotFoundException.getMessage()));
-    }
-
 
 }

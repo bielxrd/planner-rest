@@ -4,12 +4,13 @@ import br.com.planner.domain.Activity;
 import br.com.planner.dto.activity.ActivityRequestDTO;
 import br.com.planner.dto.activity.ActivityResponseDTO;
 import br.com.planner.dto.trip.TripResponseDTO;
-import br.com.planner.exceptions.ActivityFoundException;
-import br.com.planner.exceptions.ActivityNotFoundException;
+import br.com.planner.exceptions.AlreadyExistsException;
+import br.com.planner.exceptions.NotFoundException;
 import br.com.planner.exceptions.TripDateException;
 import br.com.planner.mapper.ActivityMapper;
 import br.com.planner.repositories.ActivityRepository;
 import br.com.planner.services.trip.TripService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ActivityService {
 
     private ActivityRepository activityRepository;
@@ -26,17 +28,11 @@ public class ActivityService {
 
     private ActivityMapper activityMapper;
 
-    public ActivityService(ActivityRepository activityRepository, TripService tripService, ActivityMapper activityMapper) {
-        this.activityRepository = activityRepository;
-        this.tripService = tripService;
-        this.activityMapper = activityMapper;
-    }
-
     public void createActivityForTrip(UUID tripId, ActivityRequestDTO requestDTO) {
         TripResponseDTO tripFound = this.tripService.getTripById(tripId);
 
         this.activityRepository.findByNameAndTripId(requestDTO.getName(), tripId).ifPresentOrElse((activity) -> {
-            throw new ActivityFoundException("Activity already registered.");
+            throw new AlreadyExistsException("Activity already registered.");
         }, () -> {
 
             if (!(tripFound.getStartsAt().isBefore(requestDTO.getOccursAt()) && tripFound.getEndsAt().isAfter(requestDTO.getOccursAt()))) { // se a atividade n estiver entre a data de inicio da viagem e termino
@@ -54,21 +50,12 @@ public class ActivityService {
     }
 
     public List<ActivityResponseDTO> getActivitiesByFilter(String filter, UUID tripId) {
-        List<Activity> activities;
-
-        switch (filter) {
-            case "future":
-                activities = this.activityRepository.findAllByOccursAtAfterAndTripId(LocalDateTime.now(), tripId);
-                break;
-            case "past":
-                activities = this.activityRepository.findAllByOccursAtBeforeAndTripId(LocalDateTime.now(), tripId);
-                break;
-            case "all":
-                activities = this.activityRepository.findAllByTripId(tripId);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid filter type: " + filter);
-        }
+        List<Activity> activities = switch (filter) {
+            case "future" -> this.activityRepository.findAllByOccursAtAfterAndTripId(LocalDateTime.now(), tripId);
+            case "past" -> this.activityRepository.findAllByOccursAtBeforeAndTripId(LocalDateTime.now(), tripId);
+            case "all" -> this.activityRepository.findAllByTripId(tripId);
+            default -> throw new IllegalArgumentException("Invalid filter type: " + filter);
+        };
 
         return activities.stream()
                 .map(this.activityMapper::convertToDTO)
@@ -77,7 +64,7 @@ public class ActivityService {
 
     public void deleteActivityById(UUID id) {
         if (!this.activityRepository.existsById(id)) {
-            throw new ActivityNotFoundException("Activity not found.");
+            throw new NotFoundException("Activity not found.");
         }
 
         this.activityRepository.deleteById(id);

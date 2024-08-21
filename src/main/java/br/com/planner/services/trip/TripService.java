@@ -4,31 +4,27 @@ import br.com.planner.domain.Owner;
 import br.com.planner.domain.Participant;
 import br.com.planner.domain.Trip;
 import br.com.planner.dto.email.Email;
-import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.dto.trip.*;
-import br.com.planner.exceptions.OwnerNotFoundException;
-import br.com.planner.exceptions.TripAlreadyConfirmedException;
-import br.com.planner.exceptions.TripDateException;
-import br.com.planner.exceptions.TripNotFoundException;
+import br.com.planner.exceptions.*;
 import br.com.planner.mapper.ParticipantMapper;
 import br.com.planner.mapper.TripMapper;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.TripRepository;
 import br.com.planner.services.email.EmailService;
 import br.com.planner.services.participant.ParticipantService;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TripService {
 
     private TripRepository tripRepository;
@@ -45,21 +41,11 @@ public class TripService {
 
     private TripMapper tripMapper;
 
-    public TripService(TripRepository tripRepository, ParticipantService participantService, OwnerRepository ownerRepository, ModelMapper modelMapper, EmailService emailService, ParticipantMapper participantMapper, TripMapper tripMapper) {
-        this.tripRepository = tripRepository;
-        this.participantService = participantService;
-        this.ownerRepository = ownerRepository;
-        this.modelMapper = modelMapper;
-        this.emailService = emailService;
-        this.participantMapper = participantMapper;
-        this.tripMapper = tripMapper;
-    }
-
     public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
         tripDateValidation(tripRequestDTO.getStartsAt(), tripRequestDTO.getEndsAt());
 
         Owner owner = this.ownerRepository.findById(ownerId)
-                .orElseThrow(() -> new OwnerNotFoundException("Owner not found"));
+                .orElseThrow(() -> new NotFoundException("Owner not found"));
 
         Trip map = modelMapper.map(tripRequestDTO, Trip.class);
         map.setOwnerName(owner.getName());
@@ -98,7 +84,7 @@ public class TripService {
 
     public TripResponseDTO getTripById(UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
-                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+                .orElseThrow(() -> new NotFoundException("Trip not found"));
 
         List<Participant> participants = this.participantService.getParticipants(tripId);
 
@@ -107,7 +93,7 @@ public class TripService {
 
     public TripResponseDTO findTripByDestinationFilter(String destination, UUID ownerId) {
         Trip trip = this.tripRepository.findByDestinationContainingIgnoreCaseAndOwnerId(destination, ownerId)
-                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+                .orElseThrow(() -> new NotFoundException("Trip not found"));
 
         List<Participant> participants = this.participantService.getParticipants(trip.getId());
 
@@ -119,7 +105,7 @@ public class TripService {
         tripDateValidation(request.getStartsAt(), request.getEndsAt());
 
         Trip tripRequest = this.tripRepository.findById(tripId)
-                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+                .orElseThrow(() -> new NotFoundException("Trip not found"));
 
         tripRequest.setDestination(request.getDestination());
         tripRequest.setStartsAt(request.getStartsAt());
@@ -132,7 +118,7 @@ public class TripService {
 
     public TripIdDto confirmTrip(UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
-                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+                .orElseThrow(() -> new NotFoundException("Trip not found"));
 
         if (trip.isConfirmed()) {
             throw new TripAlreadyConfirmedException("Trip has already been confirmed.");
@@ -147,7 +133,7 @@ public class TripService {
 
     public void deleteTripById(UUID tripId) {
         if (!tripRepository.existsById(tripId)) {
-            throw new TripNotFoundException("Trip not found");
+            throw new NotFoundException("Trip not found");
         }
 
         this.tripRepository.deleteById(tripId);
@@ -155,7 +141,7 @@ public class TripService {
 
     public TripResponseDTO sendInvites(TripInviteDTO request, UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
-                .orElseThrow(() -> new TripNotFoundException("Trip not found"));
+                .orElseThrow(() -> new NotFoundException("Trip not found"));
 
         List<Participant> participants = this.participantService.registerParticipansToTrip(tripId, request.getEmailsToInvite());
 
@@ -164,7 +150,7 @@ public class TripService {
 
     public TripListPageableResponseDTO getTripsForParticipants(int pageNumber, int pageSize, UUID ownerId) {
         this.ownerRepository.findById(ownerId)
-                .orElseThrow(() -> new OwnerNotFoundException("Not found."));
+                .orElseThrow(() -> new NotFoundException("Not found."));
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Trip> tripsPageable = this.tripRepository.findTripsByParticipantOwnerId(ownerId, pageable);

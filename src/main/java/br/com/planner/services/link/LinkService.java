@@ -2,6 +2,7 @@ package br.com.planner.services.link;
 
 import br.com.planner.domain.Link;
 import br.com.planner.dto.link.LinkDTO;
+import br.com.planner.exceptions.NotFoundException;
 import br.com.planner.mapper.LinkMapper;
 import br.com.planner.repositories.LinkRepository;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class LinkService {
         List<Link> links = this.linkRepository.findAllByTripId(tripId);
 
         if (links.isEmpty()) {
-            throw new RuntimeException("There is no links registered on that trip.");
+            throw new NotFoundException("There is no links registered on that trip.");
         }
 
         return linkMapper.convertToLinkDTO(links);
@@ -41,7 +42,7 @@ public class LinkService {
 
     public void deleteLinkById(UUID id) {
         if (!this.linkRepository.existsById(id)) {
-            throw new RuntimeException("Link not found.");
+            throw new NotFoundException("Link not found.");
         }
 
         this.linkRepository.deleteById(id);
