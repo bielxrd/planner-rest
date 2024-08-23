@@ -64,7 +64,7 @@ public class TripService {
             emailsToSend.add(item.getEmail());
         }
 
-        Email email = new Email(owner.getEmail(),
+        Email email = new Email("plannerspringtest@gmail.com",
                 emailsToSend,
                 "Viagem " + save.getDestination(),
                 String.format("http://localhost:5173/create?tripId=%s", save.getId()),
