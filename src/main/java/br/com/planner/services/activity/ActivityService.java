@@ -3,13 +3,16 @@ package br.com.planner.services.activity;
 import br.com.planner.domain.Activity;
 import br.com.planner.dto.activity.ActivityRequestDTO;
 import br.com.planner.dto.activity.ActivityResponseDTO;
+import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.dto.trip.TripResponseDTO;
 import br.com.planner.exceptions.AlreadyExistsException;
 import br.com.planner.exceptions.InvalidInputException;
 import br.com.planner.exceptions.NotFoundException;
 import br.com.planner.mapper.ActivityMapper;
 import br.com.planner.repositories.ActivityRepository;
+import br.com.planner.services.sqs.SQSProducerService;
 import br.com.planner.services.trip.TripService;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +30,8 @@ public class ActivityService {
     private final TripService tripService;
 
     private final ActivityMapper activityMapper;
+
+    private final SQSProducerService sqsProducerService;
 
     public void createActivityForTrip(UUID tripId, ActivityRequestDTO requestDTO) {
         TripResponseDTO tripFound = this.tripService.getTripById(tripId);
@@ -46,6 +51,11 @@ public class ActivityService {
                     .build();
 
             this.activityRepository.save(activity);
+
+            for (ParticipantResponseDTO participant : tripFound.getParticipants()) {
+                this.sqsProducerService.sendEmailToQueue(participant.getEmail(), "activity_queue");
+            }
+
         });
     }
 
