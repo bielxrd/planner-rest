@@ -69,6 +69,15 @@ public class EmailService {
         }
     }
 
+    public void sendActivityCreatedNotificationEmail(Email email) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setFrom(email.getFrom());
+        mailMessage.setTo(email.getTo().getFirst());
+        mailMessage.setSubject(email.getSubject());
+        mailMessage.setText(email.getBody());
+        mailSender.send(mailMessage);
+    }
+
     private String loadTemplate() throws IOException {
         ClassPathResource resource = new ClassPathResource("/templates/email-template.html");
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
