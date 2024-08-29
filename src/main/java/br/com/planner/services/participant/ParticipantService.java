@@ -104,15 +104,11 @@ public class ParticipantService {
         }
 
         OwnerResponse ownerResponse = this.ownerService.create(requestDTO);
+        
+        participant.setName(ownerResponse.getName());
+        participant.setOwnerId(ownerResponse.getId());
 
-        List<Participant> participants = this.participantRepository.findByEmailQuery(participant.getEmail());
-
-        for (Participant p : participants) {
-            p.setName(ownerResponse.getName());
-            p.setOwnerId(ownerResponse.getId());
-        }
-
-        this.participantRepository.saveAll(participants);
+        this.participantRepository.save(participant);
 
         ownerResponse = OwnerResponse.builder()
                 .id(ownerResponse.getId())
