@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class SQSConsumerService {
 
             String emailBody = message.body();
             String type = message.messageAttributes().get("type").stringValue();
+            String tripId = message.messageAttributes().get("trip_id").stringValue();
 
             System.out.println(emailBody + " email");
             System.out.println(type + " type");
@@ -39,17 +41,7 @@ public class SQSConsumerService {
             email.setFrom("plannerspringtest@gmail.com");
             email.setTo(Collections.singletonList(emailBody));
 
-            switch (type) {
-                case "activity_queue":
-                    email.setSubject("Nova atividade cadastrada.");
-                    email.setBody("Uma nova atividade foi cadastrada na sua viagem");
-                    this.emailService.sendActivityCreatedNotificationEmail(email);
-                    break;
-                case "link_queue":
-                    email.setSubject("Novo link cadastrado");
-                    email.setBody("Novo link foi cadastrado na sua viagem");
-                    break;
-            }
+           this.emailService.sendEmailFromConsumer(email, type, tripId);
 
             sqs.deleteMessage(queueUrl, message.receiptHandle());
     }
