@@ -20,7 +20,7 @@ public class Participant {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(name = "is_confirmed", nullable = false)
