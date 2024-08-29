@@ -21,14 +21,18 @@ public class SQSProducerService {
     @Value("${QUEUE_URL}")
     private String queueUrl;
 
-    public SendMessageResult sendEmailToQueue(String email, String type) {
-
+    public SendMessageResult sendEmailToQueue(String email, String type, String tripId) {
         Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
         MessageAttributeValue messageAttributeValue = new MessageAttributeValue()
                 .withStringValue(type)
                 .withDataType("String");
 
+        MessageAttributeValue messageAttributeTripId = new MessageAttributeValue()
+                .withStringValue(tripId)
+                .withDataType("String");
+
         messageAttributes.put("type", messageAttributeValue);
+        messageAttributes.put("trip_id", messageAttributeTripId);
 
         SendMessageRequest messageRequest = new SendMessageRequest()
                 .withQueueUrl(queueUrl)
