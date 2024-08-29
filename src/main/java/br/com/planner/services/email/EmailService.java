@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailMessage;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -48,7 +49,7 @@ public class EmailService {
         try {
             MimeMessage simpleMailMessage = mailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(simpleMailMessage, true);
-            String template = loadTemplate();
+            String template = loadTemplate("/templates/email-template.html");
             template = template.replace("#{destination}", email.getSubject());
             template = template.replace("#{date}", email.getStartsAt().toString());
             for (int i = 0; i < email.getTo().size(); i++) {
@@ -69,17 +70,59 @@ public class EmailService {
         }
     }
 
-    public void sendActivityCreatedNotificationEmail(Email email) {
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setFrom(email.getFrom());
-        mailMessage.setTo(email.getTo().getFirst());
-        mailMessage.setSubject(email.getSubject());
-        mailMessage.setText(email.getBody());
-        mailSender.send(mailMessage);
+    public void sendEmailFromConsumer(Email email, String type, String tripId) {
+        switch (type) {
+            case "activity_queue":
+                sendActivityCreatedNotificationEmail(email, tripId);
+                break;
+            case "link_queue":
+                sendLinkActivityCreatedNotificationEmail(email, tripId);
+                break;
+            default:
+                throw new MailSendException("Email notification not worked");
+        }
+
     }
 
-    private String loadTemplate() throws IOException {
-        ClassPathResource resource = new ClassPathResource("/templates/email-template.html");
+    private void sendActivityCreatedNotificationEmail(Email email, String tripId) {
+        email.setSubject("Nova atividade cadastrada com sucesso.");
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);
+            String template = loadTemplate("/templates/activity-email-template.html");
+            createMimeMessage(email, tripId, message, mimeMessageHelper, template);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void sendLinkActivityCreatedNotificationEmail(Email email, String tripId) {
+        email.setSubject("Novo link cadastrado com sucesso.");
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);
+            String template = loadTemplate("/templates/link-email-template.html");
+            createMimeMessage(email, tripId, message, mimeMessageHelper, template);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void createMimeMessage(Email email, String tripId, MimeMessage message, MimeMessageHelper mimeMessageHelper, String template) throws MessagingException {
+        for (int i = 0; i < email.getTo().size(); i++) {
+            mimeMessageHelper.setFrom(email.getFrom());
+            mimeMessageHelper.setTo(email.getTo().get(i));
+            mimeMessageHelper.setSubject(email.getSubject());
+
+            String personalizedTemplate = template.replace("#{tripId}", tripId);
+
+            mimeMessageHelper.setText(personalizedTemplate, true);
+            mailSender.send(message);
+        }
+    }
+
+    private String loadTemplate(String classPath) throws IOException {
+        ClassPathResource resource = new ClassPathResource(classPath);
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
     }
 
