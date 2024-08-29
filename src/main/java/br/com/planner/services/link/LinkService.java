@@ -40,7 +40,7 @@ public class LinkService {
         this.linkRepository.save(newLink);
 
         for (ParticipantResponseDTO participant : trip.getParticipants()) {
-            this.sqsProducerService.sendEmailToQueue(participant.getEmail(), "link_queue");
+            this.sqsProducerService.sendEmailToQueue(participant.getEmail(), "link_queue", tripId.toString());
         }
 
     }

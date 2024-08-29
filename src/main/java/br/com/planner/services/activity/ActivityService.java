@@ -53,7 +53,7 @@ public class ActivityService {
             this.activityRepository.save(activity);
 
             for (ParticipantResponseDTO participant : tripFound.getParticipants()) {
-                this.sqsProducerService.sendEmailToQueue(participant.getEmail(), "activity_queue");
+                this.sqsProducerService.sendEmailToQueue(participant.getEmail(), "activity_queue", tripId.toString());
             }
 
         });
