@@ -31,17 +31,24 @@ public class ParticipantService {
         List<Participant> participantsToSave = participants.stream()
                 .map(participant -> {
 
-                    Optional<Participant> participantFound = this.participantRepository.findById(tripId);
+                    Optional<Participant> participantFound = this.participantRepository.findByTripId(tripId);
 
                     if (participantFound.isPresent()) {
                         throw new AlreadyExistsException("Participant already registered.");
                     }
+
+//                    Participant participantByEmail = this.participantRepository.findByEmail(participant);
 
                     Participant p = new Participant();
                     p.setEmail(participant);
                     p.setName("");
                     p.setTripId(tripId);
                     p.setConfirmed(false);
+
+//                    if (participantByEmail != null && participantByEmail.getOwnerId() != null) {
+//                        p.setOwnerId(participantByEmail.getOwnerId());
+//                    }
+
                     return p;
                 }).toList();
 
@@ -98,15 +105,19 @@ public class ParticipantService {
 
         OwnerResponse ownerResponse = this.ownerService.create(requestDTO);
 
-        participant.setName(ownerResponse.getName());
-        participant.setOwnerId(ownerResponse.getId());
+        List<Participant> participants = this.participantRepository.findByEmailQuery(participant.getEmail());
 
-        Participant created = this.participantRepository.save(participant);
+        for (Participant p : participants) {
+            p.setName(ownerResponse.getName());
+            p.setOwnerId(ownerResponse.getId());
+        }
+
+        this.participantRepository.saveAll(participants);
 
         ownerResponse = OwnerResponse.builder()
-                .id(created.getOwnerId())
-                .name(created.getName())
-                .email(created.getEmail())
+                .id(ownerResponse.getId())
+                .name(ownerResponse.getName())
+                .email(ownerResponse.getEmail())
                 .build();
 
         return ownerResponse;
