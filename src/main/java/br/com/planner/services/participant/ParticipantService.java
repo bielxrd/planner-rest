@@ -1,12 +1,13 @@
 package br.com.planner.services.participant;
 
+import br.com.planner.domain.Owner;
 import br.com.planner.domain.Participant;
-import br.com.planner.dto.owner.OwnerRequestDTO;
-import br.com.planner.dto.owner.OwnerResponse;
+import br.com.planner.dto.owner.*;
 import br.com.planner.dto.participant.ParticipantConfirmRequestDTO;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.exceptions.AlreadyExistsException;
 import br.com.planner.exceptions.NotFoundException;
+import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.ParticipantRepository;
 import br.com.planner.services.owner.OwnerService;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ public class ParticipantService {
     private ParticipantRepository participantRepository;
 
     private OwnerService ownerService;
+
+    private OwnerRepository ownerRepository;
 
     public ParticipantService(ParticipantRepository participantRepository, OwnerService ownerService) {
         this.participantRepository = participantRepository;
@@ -83,16 +86,47 @@ public class ParticipantService {
         return participants;
     }
 
-    public List<Participant> getParticipantsWithoutOwnerId(List<Participant> participantsInvited) {
-        List<UUID> uuids = participantsInvited.stream()
-                .map(Participant::getId)
-                .toList();
+    public List<Participant> getParticipantsWithoutOwnerId(UUID tripId) {
+        List<Participant> participants = getParticipants(tripId);
 
-        List<Participant> invitedParticipantsByUUID = this.participantRepository.findAllById(uuids);
+        participants.removeIf(participant -> participant.getOwnerId() != null);
 
-        invitedParticipantsByUUID.removeIf(participant -> participant.getOwnerId() != null);
+        return participants;
+    }
 
-        return invitedParticipantsByUUID;
+    public VerifyOwnerResponseDTO verifyOwnerExistingAccount(String email) {
+        Optional<Owner> owner = this.ownerRepository.findByEmail(email);
+
+        if (owner.isPresent()) {
+            return VerifyOwnerResponseDTO.builder()
+                    .owner_exists(true)
+                    .ownerId(owner.get().getId())
+                    .build();
+        }
+
+        return VerifyOwnerResponseDTO.builder()
+                .owner_exists(false)
+                .ownerId(null)
+                .build();
+    }
+
+    public OwnerResponse assignParticipantToOwnerAlreadyCreated(UUID tripId, AssignOwnerRequest ownerRequest) {
+        Participant participant = this.participantRepository.findByEmailAndTripId(ownerRequest.getEmail(), tripId)
+                .orElseThrow(() -> new NotFoundException("Participant not found, cannot assign"));
+
+        Owner owner = this.ownerRepository.findById(ownerRequest.getOwnerId())
+                .orElseThrow(() -> new NotFoundException("Owner not found"));
+
+        participant.setName(owner.getName());
+        participant.setOwnerId(ownerRequest.getOwnerId());
+
+        this.participantRepository.save(participant);
+
+        return OwnerResponse.builder()
+                .id(owner.getId())
+                .name(participant.getName())
+                .email(participant.getEmail())
+                .build();
     }
 
     public OwnerResponse assignParticipantToOwner(UUID tripId, OwnerRequestDTO requestDTO) {
@@ -104,7 +138,7 @@ public class ParticipantService {
         }
 
         OwnerResponse ownerResponse = this.ownerService.create(requestDTO);
-        
+
         participant.setName(ownerResponse.getName());
         participant.setOwnerId(ownerResponse.getId());
 
