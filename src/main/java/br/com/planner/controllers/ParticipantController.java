@@ -1,7 +1,6 @@
 package br.com.planner.controllers;
 
-import br.com.planner.dto.owner.OwnerRequestDTO;
-import br.com.planner.dto.owner.OwnerResponse;
+import br.com.planner.dto.owner.*;
 import br.com.planner.dto.participant.ParticipantConfirmRequestDTO;
 import br.com.planner.dto.participant.ParticipantResponseDTO;
 import br.com.planner.services.participant.ParticipantService;
@@ -24,6 +23,18 @@ public class ParticipantController {
     public ResponseEntity<ParticipantResponseDTO> confirm(@PathVariable UUID tripId, @RequestBody ParticipantConfirmRequestDTO request) {
         ParticipantResponseDTO participantResponseDTO = this.participantService.confirmTrip(request, tripId);
         return ResponseEntity.ok().body(participantResponseDTO);
+    }
+
+    @GetMapping("/verify-owner")
+    public ResponseEntity<VerifyOwnerResponseDTO> verifyOwnerExists(@RequestBody VerifyOwnerRequestDTO verifyOwnerRequestDTO) {
+        VerifyOwnerResponseDTO verifyOwnerResponseDTO = this.participantService.verifyOwnerExistingAccount(verifyOwnerRequestDTO.getEmail());
+        return ResponseEntity.ok(verifyOwnerResponseDTO);
+    }
+
+    @PostMapping("/assign/{tripId}")
+    public ResponseEntity<OwnerResponse> assignToOwnerAlreadyRegistered(@PathVariable UUID tripId, @RequestBody AssignOwnerRequest ownerRequest) {
+        OwnerResponse ownerResponse = this.participantService.assignParticipantToOwnerAlreadyCreated(tripId, ownerRequest);
+        return ResponseEntity.ok().body(ownerResponse);
     }
 
     @PostMapping("/create/{tripId}")
