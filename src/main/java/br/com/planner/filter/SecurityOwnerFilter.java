@@ -32,7 +32,7 @@ public class SecurityOwnerFilter extends OncePerRequestFilter {
             DecodedJWT decodedJWT = provider.validateOwnerToken(token);
 
             if (decodedJWT == null) {
-                throw new TokenInvalidException("Token invalid.");
+                throw new TokenInvalidException("Permission denied.");
             }
 
             request.setAttribute("owner_id", decodedJWT.getSubject());
