@@ -56,24 +56,11 @@ public class TripService {
 
         List<Participant> participants = this.participantService.registerParticipansToTrip(save.getId(), tripRequestDTO.getEmails_to_invite());
 
-        List<Participant> participantsWithoutOwnerId = this.participantService.getParticipantsWithoutOwnerId(participants);
+        List<Participant> participantsWithoutOwnerId = this.participantService.getParticipantsWithoutOwnerId(save.getId());
 
-        List<String> emailsToSend = new ArrayList<>();
-
-        for (Participant item : participantsWithoutOwnerId) {
-            emailsToSend.add(item.getEmail());
-        }
-
-        Email email = new Email("plannerspringtest@gmail.com",
-                emailsToSend,
-                "Viagem " + save.getDestination(),
-                String.format("http://localhost:5173/create?tripId=%s", save.getId()),
-                save.getStartsAt());
-
-        this.emailService.sendEmailToParticipant(email);
+        sendEmails(save, participantsWithoutOwnerId);
 
         return this.tripMapper.toTripCreateResponseDTO(save, participants);
-
     }
 
     public TripListPageableResponseDTO getAllTrips(int pageNumber, int pageSize, UUID ownerId) {
@@ -132,9 +119,12 @@ public class TripService {
 
     }
 
-    public void deleteTripById(UUID tripId) {
-        if (!tripRepository.existsById(tripId)) {
-            throw new NotFoundException("Trip not found");
+    public void deleteTripById(UUID tripId, UUID ownerId) {
+        Trip trip = this.tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("Trip not found"));
+
+        if (trip.getOwnerId() != ownerId) {
+            throw new TokenInvalidException("Permission denied.");
         }
 
         this.tripRepository.deleteById(tripId);
@@ -146,7 +136,24 @@ public class TripService {
 
         List<Participant> participants = this.participantService.registerParticipansToTrip(tripId, request.getEmailsToInvite());
 
+        sendEmails(trip, participants);
+
         return tripMapper.toTripResponseDTO(trip, participants);
+    }
+
+    private void sendEmails(Trip trip, List<Participant> participants) {
+        List<String> emailsToSend = new ArrayList<>();
+
+        for (Participant participant : participants) {
+            emailsToSend.add(participant.getEmail());
+        }
+
+        Email email = new Email("plannerspringtest@gmail.com", emailsToSend,
+                "Viagem "+trip.getDestination(),
+                String.format("http://localhost:5173/create?tripId=%s", trip.getId()),
+                trip.getStartsAt());
+
+        this.emailService.sendEmailToParticipant(email);
     }
 
     public TripListPageableResponseDTO getTripsForParticipants(int pageNumber, int pageSize, UUID ownerId) {
