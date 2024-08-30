@@ -41,10 +41,6 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendEmailToOwner(Email email) {
-
-    }
-
     public void sendEmailToParticipant(Email email) {
         try {
             MimeMessage simpleMailMessage = mailSender.createMimeMessage();
