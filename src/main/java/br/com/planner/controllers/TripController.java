@@ -83,6 +83,18 @@ public class TripController {
         return ResponseEntity.ok(updatedTrip);
     }
 
+    @DeleteMapping("/delete/{tripId}")
+    public ResponseEntity<Object> delete(@PathVariable UUID tripId, HttpServletRequest request) {
+        String ownerId = request.getAttribute("owner_id").toString();
+
+        if (ownerId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        this.tripService.deleteTripById(tripId, UUID.fromString(ownerId));
+        return ResponseEntity.status(HttpStatus.OK).body("");
+    }
+
     @PostMapping("/invite/{tripId}")
     public ResponseEntity<TripResponseDTO> invite(@PathVariable UUID tripId, @RequestBody TripInviteDTO request) {
         TripResponseDTO tripResponseDTO = this.tripService.sendInvites(request, tripId);
