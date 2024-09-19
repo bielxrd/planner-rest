@@ -15,11 +15,10 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.security.crypto.encrypt.BouncyCastleAesCbcBytesEncryptor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
@@ -27,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 
 @Service
 public class EmailService {
@@ -41,6 +39,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    @Async
     public void sendEmailToParticipant(Email email) {
         try {
             MimeMessage simpleMailMessage = mailSender.createMimeMessage();
