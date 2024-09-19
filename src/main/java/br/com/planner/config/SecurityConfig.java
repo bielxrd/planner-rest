@@ -24,6 +24,7 @@ public class SecurityConfig {
                     http.requestMatchers("/owners/create").permitAll();
                     http.requestMatchers("/owners/auth").permitAll();
                     http.requestMatchers("/participants/create/{tripId}").permitAll();
+                    http.requestMatchers("participants/assign/{tripId}").permitAll();
                     http.requestMatchers("/sqs/teste").permitAll();
                     http.requestMatchers("/sns/teste2").permitAll();
                     http.requestMatchers("/subscribers/").permitAll();

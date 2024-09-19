@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public class ErrorMessageDTO {
 
-    private HttpStatus status;
+    private int status;
     private String message;
 
 }

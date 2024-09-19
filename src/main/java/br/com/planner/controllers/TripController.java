@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/trips")
+@CrossOrigin(origins = "*")
 public class TripController {
 
     private TripService tripService;
@@ -119,7 +120,6 @@ public class TripController {
     public ResponseEntity<List<ActivityResponseDTO>> get(@PathVariable UUID tripId, @RequestParam(name = "filter", defaultValue = "all") String filter) {
         List<ActivityResponseDTO> activities = this.activityService.getActivitiesByFilter(filter, tripId);
         return ResponseEntity.status(HttpStatus.FOUND).body(activities);
-
     }
 
     @DeleteMapping("/{activityId}/activities")

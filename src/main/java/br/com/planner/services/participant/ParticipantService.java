@@ -10,6 +10,7 @@ import br.com.planner.exceptions.NotFoundException;
 import br.com.planner.repositories.OwnerRepository;
 import br.com.planner.repositories.ParticipantRepository;
 import br.com.planner.services.owner.OwnerService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,24 +18,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ParticipantService {
 
-    private ParticipantRepository participantRepository;
+    private final ParticipantRepository participantRepository;
 
-    private OwnerService ownerService;
+    private final OwnerService ownerService;
 
-    private OwnerRepository ownerRepository;
-
-    public ParticipantService(ParticipantRepository participantRepository, OwnerService ownerService) {
-        this.participantRepository = participantRepository;
-        this.ownerService = ownerService;
-    }
+    private final OwnerRepository ownerRepository;
 
     public List<Participant> registerParticipansToTrip(UUID tripId, List<String> participants) {
         List<Participant> participantsToSave = participants.stream()
                 .map(participant -> {
 
-                    Optional<Participant> participantFound = this.participantRepository.findByTripId(tripId);
+                    Optional<Participant> participantFound = this.participantRepository.findByEmailAndTripId(participant, tripId);
 
                     if (participantFound.isPresent()) {
                         throw new AlreadyExistsException("Participant already registered.");
