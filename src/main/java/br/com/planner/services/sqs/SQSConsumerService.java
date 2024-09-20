@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +18,6 @@ public class SQSConsumerService {
     private final AmazonSQSAsync sqs;
 
     private final EmailService emailService;
-
-    private final AmazonSQSAsync amazonSQSAsync;
 
     @Value("${QUEUE_URL}")
     private String queueUrl;
@@ -41,8 +37,8 @@ public class SQSConsumerService {
             email.setFrom("plannerspringtest@gmail.com");
             email.setTo(Collections.singletonList(emailBody));
 
-           this.emailService.sendEmailFromConsumer(email, type, tripId);
-
+            this.emailService.sendEmailFromConsumer(email, type, tripId);
+    
             sqs.deleteMessage(queueUrl, message.receiptHandle());
     }
 }
