@@ -14,6 +14,10 @@ import br.com.planner.services.email.EmailService;
 import br.com.planner.services.participant.ParticipantService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,10 +41,9 @@ public class TripService {
 
     private final EmailService emailService;
 
-    private final ParticipantMapper participantMapper;
-
     private final TripMapper tripMapper;
 
+    @CacheEvict(value = "trips", key = "#ownerId")
     public TripCreateResponseDTO create(TripRequestDTO tripRequestDTO, UUID ownerId) {
         tripDateValidation(tripRequestDTO.getStartsAt(), tripRequestDTO.getEndsAt());
 
@@ -63,6 +66,7 @@ public class TripService {
         return this.tripMapper.toTripCreateResponseDTO(save, participants);
     }
 
+    @Cacheable(value = "trips", key = "#ownerId + '_' + #pageNumber + '_' + #pageSize")
     public TripListPageableResponseDTO getAllTrips(int pageNumber, int pageSize, UUID ownerId) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Trip> tripsPageable = this.tripRepository.findAllByOwnerId(ownerId, pageable);
@@ -70,6 +74,7 @@ public class TripService {
         return tripMapper.toTripListPageableResponseDTO(tripsPageable);
     }
 
+    @Cacheable(value = "trip", key = "#tripId")
     public TripResponseDTO getTripById(UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new NotFoundException("Trip not found"));
@@ -88,6 +93,7 @@ public class TripService {
         return tripMapper.toTripResponseDTO(trip, participants);
     }
 
+    @CachePut(value = "trip", key = "#tripId")
     public UpdateTripDTO updateTrip(UUID tripId, UpdateTripDTO request) {
 
         tripDateValidation(request.getStartsAt(), request.getEndsAt());
@@ -104,6 +110,7 @@ public class TripService {
         return modelMapper.map(trip, UpdateTripDTO.class);
     }
 
+    @CacheEvict(value = "trip", key = "#tripId")
     public TripIdDto confirmTrip(UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new NotFoundException("Trip not found"));
@@ -118,7 +125,10 @@ public class TripService {
         return new TripIdDto(updatedTrip.getId());
 
     }
-
+    @Caching(evict = {
+            @CacheEvict(value = "trip", key = "#tripId"),
+            @CacheEvict(value = "trips", key = "#ownerId")
+    })
     public void deleteTripById(UUID tripId, UUID ownerId) {
         Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new NotFoundException("Trip not found"));
@@ -130,6 +140,7 @@ public class TripService {
         this.tripRepository.deleteById(tripId);
     }
 
+    @CacheEvict(value = "trip", key = "#tripId")
     public TripResponseDTO sendInvites(TripInviteDTO request, UUID tripId) {
         Trip trip = this.tripRepository.findById(tripId)
                 .orElseThrow(() -> new NotFoundException("Trip not found"));
@@ -156,6 +167,7 @@ public class TripService {
         this.emailService.sendEmailToParticipant(email);
     }
 
+    @Cacheable("trips-participants")
     public TripListPageableResponseDTO getTripsForParticipants(int pageNumber, int pageSize, UUID ownerId) {
         this.ownerRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("Not found."));
