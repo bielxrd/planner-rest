@@ -12,7 +12,6 @@ import br.com.planner.mapper.ActivityMapper;
 import br.com.planner.repositories.ActivityRepository;
 import br.com.planner.services.sqs.SQSProducerService;
 import br.com.planner.services.trip.TripService;
-import com.amazonaws.services.sqs.model.SendMessageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package java.br.com.planner;
+package br.com.planner;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

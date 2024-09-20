@@ -38,7 +38,7 @@ public class SQSConsumerService {
             email.setTo(Collections.singletonList(emailBody));
 
             this.emailService.sendEmailFromConsumer(email, type, tripId);
-    
+
             sqs.deleteMessage(queueUrl, message.receiptHandle());
     }
 }
